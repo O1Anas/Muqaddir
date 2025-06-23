@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICS Calendar Viewer</title>
+    <link href='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css' rel='stylesheet' />
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div id="ics-controls">
+                <!-- ICS file controls will be added here -->
+            </div>
+            <button id="refresh-button" class="refresh-button">
+                <span class="refresh-icon">↻</span> Refresh
+            </button>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <div id="calendar"></div>
+        </div>
+        
+        <div id="loading" style="display: none;">Loading...</div>
+        <div id="error" style="display: none; color: red;"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/ical.js@1.4.0/build/ical.min.js"></script>
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js'></script>
+    <script src="main.js"></script>
+</body>
+</html>
