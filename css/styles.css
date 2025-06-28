@@ -60,7 +60,7 @@ h3 {
 }
 
 /* ========== Containers & Layout ========== */
-.container {
+.header-container {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
@@ -583,7 +583,7 @@ input[type="text"]#address {
     overflow-x: hidden !important;
   }
 
-  .container {
+  .header-container {
     padding: 0 5px;
     width: 100%;
     max-width: 100%;
