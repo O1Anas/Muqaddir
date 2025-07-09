@@ -1,0 +1,284 @@
+#eventsTableBody > tr > td > input {
+  text-align: center;
+}
+
+/* Events Container */
+.events-container {
+  margin: 4px 4px;
+  padding: 4px;
+  background-color: #f8f9fa;
+  color: white;
+  border-radius: 8px;
+}
+
+/* Header */
+.events-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.events-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: white;
+}
+
+/* Content Area */
+.events-content {
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 40px); /* Adjust based on header height */
+}
+
+/* Table Container */
+.events-table-container {
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Table */
+.events-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  color: white;
+  font-size: 0.8em;
+}
+
+/* Table Head */
+.events-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.events-table th {
+  padding: 5px 0px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.8);
+  background-color: rgba(0, 0, 0, 0.2);
+  border: none;
+}
+
+/* Table Body */
+.events-table tbody {
+  display: block;
+  overflow-y: auto;
+  max-height: calc(100vh - 300px); /* Adjust based on your layout */
+}
+
+.events-table tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.events-table td {
+  vertical-align: middle;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Column Widths */
+.events-table .event-name {
+  width: 35%;
+}
+
+.events-table .event-time {
+  width: 15%;
+}
+
+.events-table .event-conditions {
+  width: 25%;
+}
+
+.events-table .event-actions {
+  width: 10%;
+  text-align: center;
+}
+
+/* Prayer Dropdown */
+.events-table .prayer-dropdown {
+  width: 100%;
+  padding: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.2);
+  color: white;
+  font-size: 0.9em;
+  cursor: pointer;
+  text-align-last: center;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px top 50%;
+  background-size: 10px auto;
+  padding-right: 25px;
+  z-index: 10000;
+}
+
+.events-table .prayer-dropdown:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  z-index: 10000;
+}
+
+.events-table .prayer-dropdown option {
+  background-color: #2c3e50;
+  color: white;
+  padding: 8px;
+  z-index: 10000;
+}
+
+.events-table .prayer-dropdown:focus {
+  outline: none;
+  border-color: #3498db;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
+}
+
+/* Table Row Hover */
+.events-table tbody tr:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+/* Input Fields */
+.event-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  color: white;
+  font-size: 0.95em;
+  box-sizing: border-box;
+}
+
+.event-input:focus {
+  outline: none;
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Action Buttons */
+.action-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 3px;
+  transition: all 0.2s;
+  font-size: 1em;   
+}
+
+.action-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.action-btn.delete {
+  color: #ff6b6b;
+}
+
+.action-btn.delete:hover {
+  background-color: rgba(255, 107, 107, 0.2);
+}
+
+/* Save button styles */
+.action-btn.save {
+  transition: transform 0.2s;
+}
+
+.action-btn.save:active {
+  transform: scale(0.9);
+}
+
+/* Pulsing animation for save button when in edit mode */
+@keyframes pulse {
+  0% { opacity: 0.5; }
+  50% { opacity: 1; }
+  100% { opacity: 0.5; }
+}
+
+.editing .action-btn.save {
+  animation: pulse 1s infinite;
+  color: #4CAF50; /* Green color for save button when editing */
+}
+
+/* Add Event Button */
+.add-event-btn {
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px dashed rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.9em;
+  color: white;
+  transition: all 0.2s ease;
+}
+
+.add-event-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.add-event-btn span {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+/* Save Settings Button */
+.save-settings-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.7);
+  border-radius: 4px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.save-settings-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+/* Scrollbar */
+.events-table-container::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.events-table-container::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+.events-table-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+.events-table-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Editable Row */
+.editing {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.editing .event-input {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}

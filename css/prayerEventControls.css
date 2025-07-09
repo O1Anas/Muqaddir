@@ -1,0 +1,215 @@
+.prayer-controls {
+    padding: 4px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin: 4px 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.prayer-controls-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.prayer-controls-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.prayer-name {
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+}
+
+.prayer-name.disabled {
+    color: #6c757d;
+    text-decoration-line: line-through;
+    opacity: 0.7;
+    margin: 0 2px;
+}
+
+.save-settings-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6c757d; 
+    border-radius: 4px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+}
+
+.save-settings-btn:hover {
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+.save-settings-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: none;
+    color: #6c757d;
+}
+
+.save-settings-btn.has-unsaved-changes {
+    color: #28a745;
+    animation: pulse 1s infinite;
+    overflow: hidden;
+}
+
+/* .save-settings-btn.has-unsaved-changes::after {
+    content: '•';
+    position: absolute;
+    top: -2px;
+    right: 2px;
+    color: #28a745;
+    font-size: 1.2em;
+    line-height: 1;
+    animation: bounce 1s infinite alternate;
+} */
+
+/* @keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-4px); }
+} */
+
+@keyframes pulse {
+    0% { opacity: 0.5; }
+    50% { opacity: 1; }
+    100% { opacity: 0.5; }
+}
+
+/* .prayer-controls-content,
+.prayer-controls-grid {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+} */
+
+.prayer-controls-grid {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    column-gap: 7px;
+}
+
+/* .prayer-controls-grid>* {
+    flex: 0 0 calc((100% - (7px * 5)) / 6); */
+    /* Explanation:
+       - 100% is full width
+       - subtract total gaps between 6 items (5 gaps * 7px)
+       - divide remaining space by 6
+    */
+    /* max-width: calc((100% - (7px * 5)) / 6);
+    box-sizing: border-box; */
+    /* ensure padding/border included in width */
+/* } */
+
+.prayer-control {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 2px;
+    border-right: 1px solid #eee;
+}
+
+.prayer-control .control-group {
+    display: flex;
+    align-items: center;
+    transition: opacity 0.2s ease;
+}
+
+.prayer-control .prayer-name.disabled + .control-group {
+    display: none;
+    width: 0;
+}
+
+.prayer-name {
+    font-weight: 500;
+    color: #444;
+    margin: 0 2px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+}
+
+.control-group {
+    display: flex;
+    align-items: center;
+}
+
+.control-group > *:nth-child(1) {
+    margin-right: 2px; /* gap after 1st item */
+}
+
+.control-group > *:nth-child(2) {
+    margin-right: 0; /* no gap after 2nd item */
+}
+
+.control-group > *:nth-child(n+3):not(:last-child) {
+    margin-right: 5px; /* normal gap for others if needed */
+}
+
+.duration-input::after {
+    content: 'min';
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #666;
+    font-size: 0.8em;
+    pointer-events: none;
+}
+
+.color-picker {
+    width: 30px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    cursor: pointer;
+    background: #fff;
+}
+
+.duration-input {
+    width: 30px;
+    padding: 0;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.duration-label {
+    font-size: 0.85rem;
+    color: #6c757d;
+    min-width: 25px;
+}
+
+/* Hide number input arrows */
+.duration-input::-webkit-outer-spin-button,
+.duration-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+.duration-input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .prayer-control {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .control-group {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}

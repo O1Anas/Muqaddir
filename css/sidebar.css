@@ -1,0 +1,31 @@
+/* Sidebar base styles */
+/* .sidebar {
+  transition: width 0.3s ease-in-out;
+} */
+
+/* When sidebar is hidden */
+.sidebar-hidden {
+  width: 0 !important;
+  display: none !important; /* Hides the sidebar, not sure if this will be kept */
+  min-width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  opacity: 0;
+  visibility: hidden;
+  overflow: hidden;
+}
+
+/* When sidebar is visible */
+.sidebar-visible {
+  opacity: 1;
+  visibility: visible;
+  overflow-x: hidden;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+  }
+  
+}

@@ -27,7 +27,7 @@
 /* Toolbar */
 .fc .fc-toolbar {
   margin: 0 !important;
-  padding: 0 !important;
+  padding: 2px !important;
   flex-wrap: nowrap;
 }
 
@@ -134,10 +134,10 @@
 }
 
 .fc-col-header-cell-cushion {
+  padding: 0px !important;
   font-size: 0.85em;
   font-weight: 600;
-  color: #333;
-  text-decoration: none !important;
+  text-decoration: underline !important;
 }
 
 /* Time Grid Events */
@@ -201,3 +201,9 @@
     margin: 0px !important;
   }
 }
+
+/* Prayer time events in calendar */
+/* .fc-event.prayer-event {
+  font-size: 1.5em;
+  font-weight: 700;
+} */

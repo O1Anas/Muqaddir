@@ -1,75 +1,6 @@
 // DOM Elements
 const yearTypeSelect = document.getElementById("yearType");
 
-// Function to update button icon and revert after a delay
-const updateButtonIcon = (button, iconType, revertDelay = 1000, originalIconType = null) => {
-    let iconSvg = '';
-
-    // Define SVG icons
-    const icons = {
-        checkmark: `
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M20 6L9 17l-5-5"></path>
-      </svg>
-    `,
-        equals: `
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <line x1="5" y1="9" x2="19" y2="9"></line>
-        <line x1="5" y1="15" x2="19" y2="15"></line>
-      </svg>
-    `,
-        gps: `
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-        <circle cx="12" cy="10" r="3"></circle>
-      </svg>
-    `,
-        calculate: `
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 368 368" fill="currentColor">
-        <path d="M328 16H40C18 16 0 34 0 56v256c0 22 18 40 40 40h288c22 0 40-18 40-40V56c0-22-18-40-40-40zM352 312c0 13-11 24-24 24H40c-13 0-24-11-24-24V56c0-13 11-24 24-24h288c13 0 24 11 24 24v256z" />
-        <path d="M144 112h-32V80a8 8 0 0 0-16 0v32H64a8 8 0 0 0 0 16h32v32a8 8 0 0 0 16 0v-32h32a8 8 0 0 0 0-16z" />
-        <path d="M296 112h-80a8 8 0 0 0 0 16h80a8 8 0 0 0 0-16z" />
-        <path d="M137.6 214a8 8 0 0 0-11.2 0L104 236.8 81.6 214a8 8 0 0 0-11.2 11.2L93.2 248 70.4 270.8a8 8 0 0 0 11.2 11.2L104 259.2l22.4 22.8a8 8 0 0 0 11.2-11.2L115.2 248l22.8-22.8a8 8 0 0 0-0.4-11.2z" />
-        <path d="M296 208h-80a8 8 0 0 0 0 16h80a8 8 0 0 0 0-16z" />
-        <path d="M296 256h-80a8 8 0 0 0 0 16h80a8 8 0 0 0 0-16z" />
-      </svg>
-    `
-    };
-
-    // Get the requested icon
-    iconSvg = icons[iconType] || '';
-
-    // Store the original button content if needed for reverting
-    const originalContent = button.innerHTML;
-
-    // Update the button content
-    if (button.querySelector('span')) {
-        // If there's a span (text), preserve it
-        const span = button.querySelector('span').outerHTML;
-        button.innerHTML = iconSvg + span;
-    } else {
-        button.innerHTML = iconSvg;
-    }
-
-    // Revert after delay if specified
-    if (revertDelay > 0) {
-        setTimeout(() => {
-            if (originalIconType) {
-                // Revert to a specific icon type
-                if (button.querySelector('span')) {
-                    const span = button.querySelector('span').outerHTML;
-                    button.innerHTML = icons[originalIconType] + span;
-                } else {
-                    button.innerHTML = icons[originalIconType];
-                }
-            } else {
-                // Revert to original content
-                button.innerHTML = originalContent;
-            }
-        }, revertDelay);
-    }
-};
-
 // Get current position
 const getCurrentPosition = () => {
     return new Promise((resolve, reject) => {
@@ -80,8 +11,6 @@ const getCurrentPosition = () => {
 
         navigator.geolocation.getCurrentPosition(
             (position) => {
-                // Update button icon to checkmark
-                updateButtonIcon(gpsBtn, 'checkmark', 1000, 'gps');
                 resolve(position);
             },
             reject
@@ -91,6 +20,7 @@ const getCurrentPosition = () => {
 
 gpsBtn.addEventListener('click', async () => {
     try {
+        updateButtonIcon(gpsBtn, 'loading');
         // Check if we're requesting the same coordinates again
         const prevLat = latitudeInput.value.trim();
         const prevLng = longitudeInput.value.trim();
@@ -99,16 +29,21 @@ gpsBtn.addEventListener('click', async () => {
         const { latitude, longitude } = position.coords;
 
         // Check if these are the same coordinates as before
-        if (prevLat && prevLng &&
+        const isSameLocation = prevLat && prevLng &&
             Math.abs(parseFloat(prevLat) - latitude) < 0.0001 &&
-            Math.abs(parseFloat(prevLng) - longitude) < 0.0001) {
-            // Show equals sign for same coordinates
-            updateButtonIcon(gpsBtn, 'equals', 1000, 'gps');
-        }
+            Math.abs(parseFloat(prevLng) - longitude) < 0.0001;
 
         // Insert coordinates into input boxes
         latitudeInput.value = latitude;
         longitudeInput.value = longitude;
+
+        if (isSameLocation) {
+            // Show equals sign for same coordinates
+            updateButtonIcon(gpsBtn, 'equals', 1000, 'gps');
+        } else {
+            // Show checkmark only if not showing equals icon
+            updateButtonIcon(gpsBtn, 'checkmark', 1000, 'gps');
+        }
     } catch (err) {
         showError(err);
     } finally {
@@ -139,11 +74,11 @@ function checkCache(query) {
 
         // Check if the cache entry is still valid
         if (now - cacheEntry.timestamp < CACHE_EXPIRY_MS) {
-            console.log(`[fetchNominatim] Cache hit for query: ${query}`);
+            // console.log(`[fetchNominatim] Cache hit for query: ${query}`);
             return cacheEntry.data;
         } else {
             // Remove expired cache entry
-            console.log(`[fetchNominatim] Removing expired cache entry for: ${query}`);
+            // console.log(`[fetchNominatim] Removing expired cache entry for: ${query}`);
             nominatimCache.delete(query);
         }
     }
@@ -157,7 +92,7 @@ function addToCache(query, data) {
         // Remove the oldest entry
         const oldestKey = nominatimCache.keys().next().value;
         nominatimCache.delete(oldestKey);
-        console.log(`[fetchNominatim] Cache full, removed oldest entry: ${oldestKey}`);
+        // console.log(`[fetchNominatim] Cache full, removed oldest entry: ${oldestKey}`);
     }
 
     // Add the new entry
@@ -165,7 +100,7 @@ function addToCache(query, data) {
         data: data,
         timestamp: Date.now()
     });
-    console.log(`[fetchNominatim] Added to cache: ${query}`);
+    // console.log(`[fetchNominatim] Added to cache: ${query}`);
 }
 
 // Function to fetch from Nominatim with improved handling
@@ -179,19 +114,19 @@ async function fetchNominatim(url, query, abortPrevious = true) {
     // Abort any previous fetch request if requested
     if (abortPrevious) {
         if (currentFetchController) {
-            console.log(`[fetchNominatim] Aborting previous request`);
+            // console.log(`[fetchNominatim] Aborting previous request`);
             currentFetchController.abort();
             currentFetchController = null;
         }
 
         if (currentFetchTimeout) {
-            console.log(`[fetchNominatim] Clearing previous timeout`);
+            // console.log(`[fetchNominatim] Clearing previous timeout`);
             clearTimeout(currentFetchTimeout);
             currentFetchTimeout = null;
         }
 
         if (pendingFetchResolve) {
-            console.log(`[fetchNominatim] Resolving pending promise with abort`);
+            // console.log(`[fetchNominatim] Resolving pending promise with abort`);
             pendingFetchResolve(new Error('Request aborted'));
             pendingFetchResolve = null;
         }
@@ -221,7 +156,7 @@ async function fetchNominatim(url, query, abortPrevious = true) {
         if (result instanceof Error) throw result;
     }).catch(error => {
         if (error.message === 'Debounce aborted') {
-            console.log(`[fetchNominatim] Debounce period aborted`);
+            // console.log(`[fetchNominatim] Debounce period aborted`);
             throw new Error('Request aborted');
         }
         throw error;
@@ -234,7 +169,7 @@ async function fetchNominatim(url, query, abortPrevious = true) {
     // If less than 1 second has passed since the last request, wait
     if (timeElapsed < NOMINATIM_RATE_LIMIT_MS) {
         const waitTime = NOMINATIM_RATE_LIMIT_MS - timeElapsed;
-        console.log(`[fetchNominatim] Rate limiting: waiting ${waitTime}ms before next request`);
+        // console.log(`[fetchNominatim] Rate limiting: waiting ${waitTime}ms before next request`);
         try {
             await new Promise((resolve, reject) => {
                 const timeout = setTimeout(resolve, waitTime);
@@ -245,7 +180,7 @@ async function fetchNominatim(url, query, abortPrevious = true) {
             });
         } catch (error) {
             if (error.message === 'Wait aborted') {
-                console.log(`[fetchNominatim] Wait period aborted`);
+                // console.log(`[fetchNominatim] Wait period aborted`);
                 throw new Error('Request aborted');
             }
             throw error;
@@ -254,7 +189,7 @@ async function fetchNominatim(url, query, abortPrevious = true) {
 
     // Now perform the actual fetch
     try {
-        console.log(`[fetchNominatim] Fetching: ${url}`);
+        // console.log(`[fetchNominatim] Fetching: ${url}`);
         const startTime = performance.now();
 
         // Update the last request time BEFORE making the request
@@ -271,7 +206,7 @@ async function fetchNominatim(url, query, abortPrevious = true) {
         const response = await Promise.race([fetchPromise, timeoutPromise]);
 
         const fetchTime = (performance.now() - startTime).toFixed(2);
-        console.log(`[fetchNominatim] Responded in ${fetchTime}ms with status: ${response.status}`);
+        // console.log(`[fetchNominatim] Responded in ${fetchTime}ms with status: ${response.status}`);
 
         if (!response.ok) {
             throw new Error(`Nominatim API error: ${response.status}`);
@@ -285,10 +220,10 @@ async function fetchNominatim(url, query, abortPrevious = true) {
         return data;
     } catch (error) {
         if (error.name === 'AbortError' || error.message === 'Request aborted') {
-            console.log(`[fetchNominatim] Request aborted`);
+            // console.log(`[fetchNominatim] Request aborted`);
             throw new Error('Request aborted');
         } else if (error.message === 'Fetch timeout') {
-            console.log(`[fetchNominatim] Request timed out after 5 seconds`);
+            // console.log(`[fetchNominatim] Request timed out after 5 seconds`);
             throw new Error('Request timed out');
         }
         throw error;
@@ -302,15 +237,15 @@ async function fetchNominatim(url, query, abortPrevious = true) {
 
 // Function to geocode an address using Nominatim
 async function geocodeAddress(address) {
-    console.log(`[geocodeAddress] Starting geocoding for address: ${address}`);
-    console.log(`[geocodeAddress] suggestionSelected flag is: ${suggestionSelected}`);
+    // console.log(`[geocodeAddress] Starting geocoding for address: ${address}`);
+    // console.log(`[geocodeAddress] suggestionSelected flag is: ${suggestionSelected}`);
 
     try {
         const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
 
         // Use the address as the query for caching
         const data = await fetchNominatim(nominatimUrl, address, true);
-        console.log(`[geocodeAddress] Nominatim returned ${data.length} results`);
+        // console.log(`[geocodeAddress] Nominatim returned ${data.length} results`);
 
         if (!data.length) {
             console.error(`[geocodeAddress] Nominatim returned no results for "${address}"`);
@@ -320,14 +255,14 @@ async function geocodeAddress(address) {
         // If there's only one result, use it directly
         if (data.length === 1) {
             const { lat, lon, display_name } = data[0];
-            console.log(`[geocodeAddress] Found single result with coordinates: ${lat}, ${lon}`);
-            console.log(`[geocodeAddress] Full address: ${display_name}`);
+            // console.log(`[geocodeAddress] Found single result with coordinates: ${lat}, ${lon}`);
+            // console.log(`[geocodeAddress] Full address: ${display_name}`);
 
             // Update input fields with the coordinates and display name
             latitudeInput.value = lat;
             longitudeInput.value = lon;
             addressInput.value = display_name;
-            console.log(`[geocodeAddress] Updated address input with full display name: ${display_name}`);
+            // console.log(`[geocodeAddress] Updated address input with full display name: ${display_name}`);
 
             return {
                 latitude: lat,
@@ -337,8 +272,8 @@ async function geocodeAddress(address) {
         }
         // If there are multiple results, show the dropdown for user selection
         else {
-            console.log(`[geocodeAddress] Multiple results found (${data.length}), showing dropdown for user selection`);
-            console.log(`[geocodeAddress] Please select a location from the dropdown`);
+            // console.log(`[geocodeAddress] Multiple results found (${data.length}), showing dropdown for user selection`);
+            // console.log(`[geocodeAddress] Please select a location from the dropdown`);
 
             // Create a promise that will be resolved when the user selects a location
             return new Promise((resolve) => {
@@ -351,19 +286,19 @@ async function geocodeAddress(address) {
                 // Show the dropdown with the results
                 showLocationDropdown(data, (selectedLocation) => {
                     const { lat, lon, display_name } = selectedLocation;
-                    console.log(`[geocodeAddress] Location selected with coordinates: ${lat}, ${lon}`);
-                    console.log(`[geocodeAddress] Selected address: ${display_name}`);
+                    // console.log(`[geocodeAddress] Location selected with coordinates: ${lat}, ${lon}`);
+                    // console.log(`[geocodeAddress] Selected address: ${display_name}`);
 
                     // Update input fields with the selected coordinates and display name
                     latitudeInput.value = lat;
                     longitudeInput.value = lon;
                     addressInput.value = display_name;
-                    console.log(`[geocodeAddress] Updated address input with selected display name: ${display_name}`);
+                    // console.log(`[geocodeAddress] Updated address input with selected display name: ${display_name}`);
 
                     // Set the suggestion selected flag
                     setSuggestionSelected(true);
                     suggestionSelected = true;
-                    console.log(`[geocodeAddress] Set suggestionSelected to true`);
+                    // console.log(`[geocodeAddress] Set suggestionSelected to true`);
 
                     resolve({
                         latitude: lat,
@@ -442,7 +377,7 @@ function showLocationDropdown(locations, callback) {
 
     useFirstItem.addEventListener('click', () => {
         dropdown.classList.remove('show');
-        console.log(`User clicked 'Use First Result', using first result`);
+        // console.log(`User clicked 'Use First Result', using first result`);
         // Set the suggestion selected flag
         setSuggestionSelected(true);
         suggestionSelected = true;
@@ -473,7 +408,7 @@ function showLocationDropdown(locations, callback) {
             document.removeEventListener('click', closeDropdown);
 
             // Use the first result instead of treating it as a cancellation
-            console.log(`User clicked outside dropdown, using first result`);
+            // console.log(`User clicked outside dropdown, using first result`);
             // Set the suggestion selected flag
             setSuggestionSelected(true);
             suggestionSelected = true;
@@ -494,7 +429,7 @@ function showLocationDropdown(locations, callback) {
             document.removeEventListener('click', closeDropdown);
 
             // Use the first result instead of treating it as a cancellation
-            console.log(`User pressed ESC, using first result`);
+            // console.log(`User pressed ESC, using first result`);
             // Set the suggestion selected flag
             setSuggestionSelected(true);
             suggestionSelected = true;
@@ -514,7 +449,7 @@ let fetchedQueries = new Set(); // Track queries we've already fetched suggestio
 // Use localStorage to track if a suggestion has been selected
 function setSuggestionSelected(value) {
     localStorage.setItem('suggestionSelected', value ? 'true' : 'false');
-    console.log(`Set suggestionSelected to ${value}`);
+    // console.log(`Set suggestionSelected to ${value}`);
 }
 
 function getSuggestionSelected() {
@@ -597,12 +532,12 @@ function selectSuggestion(index) {
         latitudeInput.value = suggestion.lat;
         longitudeInput.value = suggestion.lon;
         document.getElementById('addressSuggestions').classList.remove('show');
-        console.log(`Selected suggestion: ${suggestion.display_name} (${suggestion.lat}, ${suggestion.lon})`);
+        // console.log(`Selected suggestion: ${suggestion.display_name} (${suggestion.lat}, ${suggestion.lon})`);
 
         // Set the flag to indicate a suggestion has been selected
         setSuggestionSelected(true);
         suggestionSelected = true;
-        console.log('Suggestion selected, will not prompt for location selection');
+        // console.log('Suggestion selected, will not prompt for location selection');
     }
 }
 
@@ -643,191 +578,6 @@ function updateSelectedSuggestion(suggestions) {
     });
 }
 
-calculateBtn.addEventListener('click', async () => {
-    try {
-        // Get and validate input values
-        let latitude = latitudeInput.value.trim();
-        let longitude = longitudeInput.value.trim();
-        let address = document.getElementById('address').value.trim();
-        console.log(`Initial input values - Latitude: ${latitude}, Longitude: ${longitude}, Address: ${address}`);
-        console.log(`suggestionSelected flag is: ${suggestionSelected}`);
-
-        // Validate coordinates if provided
-        if (latitude && longitude) {
-            console.log(`Validating coordinates: ${latitude}, ${longitude}`);
-            latitude = parseFloat(latitude);
-            longitude = parseFloat(longitude);
-
-            if (isNaN(latitude) || isNaN(longitude)) {
-                console.error(`Invalid coordinates - Latitude: ${latitude}, Longitude: ${longitude}`);
-                throw new Error("Invalid latitude or longitude values");
-            }
-
-            // Update input fields with validated values
-            console.log(`Updating input fields with validated coordinates - Latitude: ${latitude}, Longitude: ${longitude}`);
-            latitudeInput.value = latitude;
-            longitudeInput.value = longitude;
-        }
-
-        // Use current position if no coordinates or address provided
-        if (!address) {
-            console.log(`No address provided, checking for coordinates...`);
-            if (!latitude || !longitude) {
-                console.log(`No coordinates provided, attempting to get current position...`);
-                try {
-                    console.log(`Calling getCurrentPosition()...`);
-                    const position = await getCurrentPosition();
-                    latitude = position.coords.latitude;
-                    longitude = position.coords.longitude;
-                    console.log(`Current position obtained - Latitude: ${latitude}, Longitude: ${longitude}`);
-                    latitudeInput.value = latitude;
-                    longitudeInput.value = longitude;
-                } catch (posError) {
-                    console.error(`Failed to get current position: ${posError.message}`);
-                    throw new Error("Failed to get current position. Please enter an address or coordinates.");
-                }
-            }
-        }
-
-        // Get year type and calculation method
-        const yearType = yearTypeSelect.value;
-        const calculationMethod = calculationMethodSelect.value;
-        console.log(`Year type: ${yearType === "1" ? "Hijri" : "Gregorian"}, Calculation method: ${calculationMethod}`);
-
-        // Determine the year to use
-        let year;
-        if (yearType === "1") {
-            console.log(`Getting Hijri year...`);
-            if (!yearInput || !yearInput.value.trim()) {
-                console.log(`No year input, checking localStorage for hijriData...`);
-                try {
-                    const hijriData = localStorage.getItem("hijriData");
-                    if (hijriData) {
-                        console.log(`Found hijriData in localStorage`);
-                        const hijri = JSON.parse(hijriData);
-                        if (hijri && hijri.year) {
-                            year = hijri.year;
-                            console.log(`Using Hijri year from localStorage: ${year}`);
-                        } else {
-                            throw new Error("Invalid hijriData structure in localStorage");
-                        }
-                    } else {
-                        console.log(`No hijriData in localStorage, fetching from API...`);
-                        const response = await fetch("https://api.aladhan.com/v1/gToH");
-                        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-                        const data = await response.json();
-                        year = data.data.hijri.year;
-                        console.log(`API returned Hijri year: ${year}`);
-
-                        // Store the fetched Hijri data for future use
-                        localStorage.setItem("hijriData", JSON.stringify(data.data.hijri));
-                        console.log(`Stored new hijriData in localStorage`);
-                    }
-                } catch (error) {
-                    console.error(`Error fetching Hijri year: ${error.message}`);
-                    console.log(`Using default Hijri year 1446`);
-                    year = "1446";
-                }
-            } else {
-                year = yearInput.value.trim();
-                console.log(`Using user-provided Hijri year: ${year}`);
-            }
-        } else {
-            year = yearInput && yearInput.value.trim() ? yearInput.value.trim() : new Date().getFullYear();
-            console.log(`Using Gregorian year: ${year}`);
-        }
-
-        // Determine calendar type based on year type
-        const calendarType = yearType === "1" ? "hijriCalendar" : "calendar";
-        console.log(`Calendar type:`, yearType === "1" ? "hijri" : "gregorian");
-
-        // Build API URL
-        let apiUrl;
-
-        // Check if we need to geocode the address
-        if (address) {
-            // Check if we need to geocode
-            let needToGeocode = true;
-
-            // If a suggestion has been selected from the dropdown, use those coordinates
-            if (getSuggestionSelected()) {
-                console.log(`A suggestion was previously selected, using those coordinates`);
-                console.log(`Address: ${address}`);
-                console.log(`Coordinates: ${latitude}, ${longitude}`);
-                needToGeocode = false;
-                // Reset the flag for next time
-                setSuggestionSelected(false);
-                suggestionSelected = false;
-            }
-            // If the address looks like a full display_name from Nominatim and we have coordinates
-            else if (latitude && longitude) {
-                // Check if this address was previously geocoded by checking if it's a full display_name
-                // Display names from Nominatim are typically long and contain commas
-                if (address.includes(',') && address.length > 10) {
-                    console.log(`Using existing coordinates for previously geocoded address: ${address}`);
-                    console.log(`Coordinates: ${latitude}, ${longitude}`);
-                    needToGeocode = false;
-                    // Set the suggestion selected flag to prevent geocoding
-                    setSuggestionSelected(true);
-                    suggestionSelected = true;
-                }
-            }
-
-            // If we need to geocode the address
-            if (needToGeocode) {
-                alert('Please select a location from the suggestions dropdown');
-                // Focus and show suggestions after a small delay
-                setTimeout(() => {
-                    addressInput.focus();
-                    if (address.trim().length >= 3) {
-                        showAddressSuggestions(currentSuggestions.length > 0 ? currentSuggestions :
-                            fetchNominatim(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address.trim())}`, address.trim(), true));
-                    }
-                }, 50);
-                return;
-            }
-        }
-
-        // Now build the API URL with the coordinates (either from geocoding or directly provided)
-        console.log(`Building URL with coordinates: ${latitude}, ${longitude}`);
-        apiUrl = `https://api.aladhan.com/v1/${calendarType}/${year}?latitude=${latitude}&longitude=${longitude}&method=${calculationMethod}`;
-        console.log(`API URL: ${apiUrl}`);
-
-        // Check if this is a duplicate request
-        if (apiUrl === previousApiUrl) {
-            console.log(`Same API request detected: ${apiUrl}`);
-            console.log(`Previous API URL: ${previousApiUrl}`);
-            console.log("No new calculations or UI updates needed.");
-
-            // Show equals sign for duplicate request
-            updateButtonIcon(calculateBtn, 'equals', 1000, 'calculate');
-            return;
-        }
-
-        // Proceed with API request
-        console.log(`New request detected. Previous URL: ${previousApiUrl || 'none'}`);
-        console.log(`Proceeding with request to: ${apiUrl}`);
-        clearError();
-
-        const response = await fetch(apiUrl);
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`Failed to fetch prayer times: ${errorData?.data || "Unknown error occurred"}`);
-        }
-
-        const data = await response.json();
-
-        previousApiUrl = apiUrl;
-
-        downloadBtn.classList.add('show');
-
-        // Show checkmark for successful calculation
-        updateButtonIcon(calculateBtn, 'checkmark', 1000, 'calculate');
-    } catch (err) {
-        showError(err instanceof Error ? err : new Error('An error occurred'));
-    }
-});
-
 yearTypeSelect.addEventListener("change", async () => {
     updatePlaceholder()
     let year = yearInput.value.trim();
@@ -854,7 +604,7 @@ yearTypeSelect.addEventListener("change", async () => {
                     hijriMonth = hijri.month.number;
                 } else {
                     // Default to 1st of Muharram if no data available
-                    console.log("No hijriData in localStorage, using defaults");
+                    // console.log("No hijriData in localStorage, using defaults");
                     hijriDay = 1;
                     hijriMonth = 1;
                 }
@@ -876,24 +626,24 @@ yearTypeSelect.addEventListener("change", async () => {
 });
 
 async function storeHijriData() {
-    console.log("Checking for Hijri data in localStorage...");
+    // console.log("Checking for Hijri data in localStorage...");
     const existingData = localStorage.getItem("hijriData");
 
     // Check if we need to fetch new data
     let needToFetch = false;
 
     if (!existingData) {
-        console.log("No Hijri data found in localStorage");
+        // console.log("No Hijri data found in localStorage");
         needToFetch = true;
     } else {
         // Validate existing data
         try {
             const hijri = JSON.parse(existingData);
             if (!hijri || !hijri.year || !hijri.month || !hijri.day) {
-                console.log("Invalid Hijri data structure in localStorage");
+                // console.log("Invalid Hijri data structure in localStorage");
                 needToFetch = true;
             } else {
-                console.log(`Hijri data already stored: Year ${hijri.year}, Month ${hijri.month.en}, Day ${hijri.day}`);
+                // console.log(`Hijri data already stored: Year ${hijri.year}, Month ${hijri.month.en}, Day ${hijri.day}`);
             }
         } catch (error) {
             console.error("Error parsing stored Hijri data:", error);
@@ -904,26 +654,26 @@ async function storeHijriData() {
     // Fetch new data if needed
     if (needToFetch) {
         try {
-            console.log("Fetching Hijri data from API...");
+            // console.log("Fetching Hijri data from API...");
             const response = await fetch("https://api.aladhan.com/v1/gToH");
 
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
             const data = await response.json();
-            console.log("Received Hijri data from API");
+            // console.log("Received Hijri data from API");
 
             if (!data.data || !data.data.hijri) {
                 throw new Error("Invalid API response structure");
             }
 
             localStorage.setItem("hijriData", JSON.stringify(data.data.hijri));
-            console.log(`Stored new Hijri data: Year ${data.data.hijri.year}`);
+            // console.log(`Stored new Hijri data: Year ${data.data.hijri.year}`);
 
             // Verify stored data
             const storedHijriData = localStorage.getItem("hijriData");
             try {
                 JSON.parse(storedHijriData); // Just verify it can be parsed
-                console.log("Verified stored Hijri data is valid");
+                // console.log("Verified stored Hijri data is valid");
             } catch (error) {
                 console.error("Error verifying stored Hijri data:", error);
             }
@@ -945,7 +695,7 @@ function updatePlaceholder() {
             hijriYear = hijri.year;
         } else {
             // If no hijriData in localStorage, we'll use the default
-            console.log("No hijriData in localStorage, using default Hijri year");
+            // console.log("No hijriData in localStorage, using default Hijri year");
         }
     } catch (error) {
         console.error("Error parsing hijriData:", error);
@@ -953,3 +703,228 @@ function updatePlaceholder() {
 
     yearInput.placeholder = yearTypeSelect.value === "1" ? hijriYear : new Date().getFullYear();
 }
+
+calculateBtn.addEventListener('click', async () => {
+    try {
+        updateButtonIcon(calculateBtn, 'loading');
+        // Get and validate input values
+        let latitude = latitudeInput.value.trim();
+        let longitude = longitudeInput.value.trim();
+        let address = document.getElementById('address').value.trim();
+        // console.log(`Initial input values - Latitude: ${latitude}, Longitude: ${longitude}, Address: ${address}`);
+        // console.log(`suggestionSelected flag is: ${suggestionSelected}`);
+
+        // Validate coordinates if provided
+        if (latitude && longitude) {
+            // console.log(`Validating coordinates: ${latitude}, ${longitude}`);
+            latitude = parseFloat(latitude);
+            longitude = parseFloat(longitude);
+
+            if (isNaN(latitude) || isNaN(longitude)) {
+                console.error(`Invalid coordinates - Latitude: ${latitude}, Longitude: ${longitude}`);
+                throw new Error("Invalid latitude or longitude values");
+            }
+
+            // Update input fields with validated values
+            // console.log(`Updating input fields with validated coordinates - Latitude: ${latitude}, Longitude: ${longitude}`);
+            latitudeInput.value = latitude;
+            longitudeInput.value = longitude;
+        }
+
+        // Use current position if no coordinates or address provided
+        if (!address) {
+            // console.log(`No address provided, checking for coordinates...`);
+            if (!latitude || !longitude) {
+                // console.log(`No coordinates provided, attempting to get current position...`);
+                try {
+                    // console.log(`Calling getCurrentPosition()...`);
+                    const position = await getCurrentPosition();
+                    updateButtonIcon(gpsBtn, 'checkmark', 1000, 'gps');
+                    latitude = position.coords.latitude;
+                    longitude = position.coords.longitude;
+                    // console.log(`Current position obtained - Latitude: ${latitude}, Longitude: ${longitude}`);
+                    latitudeInput.value = latitude;
+                    longitudeInput.value = longitude;
+                } catch (posError) {
+                    console.error(`Failed to get current position: ${posError.message}`);
+                    throw new Error("Failed to get current position. Please enter an address or coordinates.");
+                }
+            }
+        }
+
+        // Get year type and calculation method
+        const yearType = yearTypeSelect.value;
+        const calculationMethod = calculationMethodSelect.value;
+        // console.log(`Year type: ${yearType === "1" ? "Hijri" : "Gregorian"}, Calculation method: ${calculationMethod}`);
+
+        // Determine the year to use
+        let year;
+        if (yearType === "1") {
+            // console.log(`Getting Hijri year...`);
+            if (!yearInput || !yearInput.value.trim()) {
+                // console.log(`No year input, checking localStorage for hijriData...`);
+                try {
+                    const hijriData = localStorage.getItem("hijriData");
+                    if (hijriData) {
+                        // console.log(`Found hijriData in localStorage`);
+                        const hijri = JSON.parse(hijriData);
+                        if (hijri && hijri.year) {
+                            year = hijri.year;
+                            // console.log(`Using Hijri year from localStorage: ${year}`);
+                        } else {
+                            throw new Error("Invalid hijriData structure in localStorage");
+                        }
+                    } else {
+                        // console.log(`No hijriData in localStorage, fetching from API...`);
+                        const response = await fetch("https://api.aladhan.com/v1/gToH");
+                        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+                        const data = await response.json();
+                        year = data.data.hijri.year;
+                        // console.log(`API returned Hijri year: ${year}`);
+
+                        // Store the fetched Hijri data for future use
+                        localStorage.setItem("hijriData", JSON.stringify(data.data.hijri));
+                        // console.log(`Stored new hijriData in localStorage`);
+                    }
+                } catch (error) {
+                    console.error(`Error fetching Hijri year: ${error.message}`);
+                    // console.log(`Using default Hijri year 1446`);
+                    year = "1446";
+                }
+            } else {
+                year = yearInput.value.trim();
+                // console.log(`Using user-provided Hijri year: ${year}`);
+            }
+        } else {
+            year = yearInput && yearInput.value.trim() ? yearInput.value.trim() : new Date().getFullYear();
+            // console.log(`Using Gregorian year: ${year}`);
+        }
+
+        // Determine calendar type based on year type
+        const calendarType = yearType === "1" ? "hijriCalendar" : "calendar";
+        // console.log(`Calendar type:`, yearType === "1" ? "hijri" : "gregorian");
+
+        // Build API URL
+        let apiUrl;
+
+        // Check if we need to geocode the address
+        if (address) {
+            // Check if we need to geocode
+            let needToGeocode = true;
+
+            // If a suggestion has been selected from the dropdown, use those coordinates
+            if (getSuggestionSelected()) {
+                // console.log(`A suggestion was previously selected, using those coordinates`);
+                // console.log(`Address: ${address}`);
+                // console.log(`Coordinates: ${latitude}, ${longitude}`);
+                needToGeocode = false;
+                // Reset the flag for next time
+                setSuggestionSelected(false);
+                suggestionSelected = false;
+            }
+            // If the address looks like a full display_name from Nominatim and we have coordinates
+            else if (latitude && longitude) {
+                // Check if this address was previously geocoded by checking if it's a full display_name
+                // Display names from Nominatim are typically long and contain commas
+                if (address.includes(',') && address.length > 10) {
+                    // console.log(`Using existing coordinates for previously geocoded address: ${address}`);
+                    // console.log(`Coordinates: ${latitude}, ${longitude}`);
+                    needToGeocode = false;
+                    // Set the suggestion selected flag to prevent geocoding
+                    setSuggestionSelected(true);
+                    suggestionSelected = true;
+                }
+            }
+
+            // If we need to geocode the address
+            if (needToGeocode) {
+                alert('Please select a location from the suggestions dropdown');
+                // Focus and show suggestions after a small delay
+                setTimeout(() => {
+                    addressInput.focus();
+                    if (address.trim().length >= 3) {
+                        showAddressSuggestions(currentSuggestions.length > 0 ? currentSuggestions :
+                            fetchNominatim(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address.trim())}`, address.trim(), true));
+                    }
+                }, 50);
+                return;
+            }
+        }
+
+        // Now build the API URL with the coordinates (either from geocoding or directly provided)
+        // console.log(`Building URL with coordinates: ${latitude}, ${longitude}`);
+        // Create a date object using the selected year and current month/day
+        const selectedYear = parseInt(year, 10);
+        const today = new Date();
+        const startDate = new Date(selectedYear, today.getMonth(), today.getDate());
+
+        // Calculate end date (6 months from start date)
+        const endDate = new Date(startDate);
+        endDate.setMonth(endDate.getMonth() + 1); // range is 1 month, max is 11 with this approach (still fast & optimized)
+
+        // Format dates as DD-MM-YYYY
+        const formatDate = (date) => {
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            return `${day}-${month}-${year}`;
+        };
+
+        const startDateStr = formatDate(startDate);
+        const endDateStr = formatDate(endDate);
+
+        apiUrl = `https://api.aladhan.com/v1/calendar/from/${startDateStr}/to/${endDateStr}?latitude=${latitude}&longitude=${longitude}&method=${calculationMethod}`;
+        // console.log(`API URL: ${apiUrl}`);
+
+        // Check if this is a duplicate request
+        if (apiUrl === previousApiUrl) {
+            // console.log(`Same API request detected: ${apiUrl}`);
+            // console.log(`Previous API URL: ${previousApiUrl}`);
+            // console.log("No new calculations or UI updates needed.");
+
+            // Show equals sign for duplicate request
+            updateButtonIcon(calculateBtn, 'equals', 1000, 'calculate');
+            return;
+        }
+
+        // Proceed with API request
+        // console.log(`New request detected. Previous URL: ${previousApiUrl || 'none'}`);
+        console.log(`Proceeding with request to: ${apiUrl}`);
+        clearError();
+
+        const response = await fetch(apiUrl);
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Failed to fetch prayer times: ${errorData?.data || "Unknown error occurred"}`);
+        }
+
+        const data = await response.json();
+
+        // Save the prayer times data to window for debugging
+        window.prayerTimesData = data;
+        // console.log('Received prayer times data:', data);
+
+        try {
+            // Always try to add prayer times to calendar
+            // The function will handle the case when calendar is not ready yet
+            addPrayerTimesToCalendar(window.calendar, data);
+
+            // If we have a valid response, store the data in localStorage
+            if (data && data.code === 200) {
+                localStorage.setItem('lastPrayerTimesData', JSON.stringify(data));
+                // console.log('Prayer times data saved to localStorage');
+            }
+        } catch (error) {
+            console.error('Error processing prayer times:', error);
+        }
+
+        previousApiUrl = apiUrl;
+
+        downloadBtn.classList.add('show');
+
+        // Show checkmark for successful calculation
+        updateButtonIcon(calculateBtn, 'checkmark', 1000, 'calculate');
+    } catch (err) {
+        showError(err instanceof Error ? err : new Error('An error occurred'));
+    }
+});

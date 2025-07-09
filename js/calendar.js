@@ -1,3 +1,54 @@
+// Save all calendar events to localStorage
+let _isSaving = false;
+
+function _saveCalendarEvents(calendar) {
+    if (!calendar || _isSaving) return;
+
+    _isSaving = true;
+    try {
+        const events = calendar.getEvents();
+        const eventsData = events.map(event => ({
+            title: event.title,
+            start: event.start,
+            end: event.end,
+            allDay: event.allDay,
+            color: event.backgroundColor,
+            backgroundColor: event.backgroundColor,
+            textColor: event.textColor,
+            borderColor: event.borderColor,
+            extendedProps: event.extendedProps || {}
+        }));
+        localStorage.setItem('calendarEvents', JSON.stringify(eventsData));
+    } catch (e) {
+        console.error('Error saving calendar events:', e);
+    } finally {
+        _isSaving = false;
+    }
+}
+
+// Load and restore calendar events from localStorage
+function loadCalendarEvents(calendar) {
+    if (!calendar) return;
+    
+    try {
+        const savedEvents = localStorage.getItem('calendarEvents');
+        if (savedEvents) {
+            const events = JSON.parse(savedEvents);
+            events.forEach(eventData => {
+                // Convert string dates back to Date objects
+                eventData.start = new Date(eventData.start);
+                if (eventData.end) {
+                    eventData.end = new Date(eventData.end);
+                }
+                calendar.addEvent(eventData);
+            });
+            console.log(`Restored ${events.length} events from localStorage`);
+        }
+    } catch (e) {
+        console.error('Error loading calendar events:', e);
+    }
+}
+
 // Update calendar height based on header
 function updateCalendarHeight() {
   const header = document.querySelector('.header-container');
@@ -21,12 +72,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
   const calendarEl = document.getElementById('calendar');
   
+  // Create calendar instance and expose it globally
   const calendar = new FullCalendar.Calendar(calendarEl, {
     initialView: 'timeGrid4Days',
     headerToolbar: {
-      left: 'prev,next today',
+      left: 'prevYear,prev,today,next,nextYear',
       center: 'title',
-        right: 'timeGridDay,timeGrid4Days,timeGridWeek,dayGridMonth'
+      right: 'timeGridDay,timeGrid4Days,timeGridWeek,dayGridMonth'
     },
     views: {
       timeGrid4Days: {
@@ -34,13 +86,6 @@ document.addEventListener('DOMContentLoaded', function() {
         duration: { days: 4 },
         buttonText: '4 days'
       }
-    },
-    buttonText: {
-      today: 'Today',
-      day: 'Day',
-      month: 'Month',
-      week: 'Week',
-      list: 'List'
     },
     firstDay: -2, // Start week on Friday
     navLinks: true, // Allow clicking on day/week names to navigate
@@ -65,8 +110,50 @@ document.addEventListener('DOMContentLoaded', function() {
     ]
   });
 
+  // Render the calendar
   calendar.render();
+  
+  // Load saved events
+  loadCalendarEvents(calendar);
+  
+  // Expose the calendar instance and a utility object globally
+  window.calendar = calendar;
+  window.calendarUtils = {
+    save: () => _saveCalendarEvents(calendar),
+    load: () => loadCalendarEvents(calendar)
+  };
+  
+  // Notify that the calendar is ready
+  if (window.onCalendarReady) {
+    window.onCalendarReady(calendar);
+  }
   
   // Update height after calendar renders
   setTimeout(updateCalendarHeight, 100);
+  
+  // Add keyboard shortcuts for calendar navigation
+  document.addEventListener('keydown', function(e) {
+    // Only handle keys when not focused on input fields
+    if (document.activeElement.tagName === 'INPUT') return;
+    
+    const key = e.key.toLowerCase();
+    
+    // 'v' key - cycle through views
+    if (key === 'v') {
+      e.preventDefault();
+      const viewOrder = ['timeGridDay', 'timeGrid4Days', 'timeGridWeek', 'dayGridMonth'];
+      const currentView = calendar.view.type;
+      const currentIndex = viewOrder.indexOf(currentView);
+      const nextIndex = (currentIndex + 1) % viewOrder.length;
+      calendar.changeView(viewOrder[nextIndex]);
+    }
+    // 't' key - go to today
+    else if (key === 't') {
+      e.preventDefault();
+      calendar.today();
+    }
+  });
+  
+  // Return the calendar instance for module systems
+  return calendar;
 });
