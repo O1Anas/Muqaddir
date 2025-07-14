@@ -4,6 +4,10 @@ let isInitialized = false;
 function initializeEventsTable() {
   if (isInitialized) return;
   isInitialized = true;
+
+  // Expose functions globally
+  window.getAllEventsData = getAllEventsData;
+  window.getEnabledPrayers = getEnabledPrayers;
   
   // DOM Elements
   const eventsTableBody = document.getElementById('eventsTableBody');
@@ -32,22 +36,45 @@ function initializeEventsTable() {
     
     row.innerHTML = `
       <td class="event-name">
-        <input type="text" name="name" value="${data.name || 'New Event'}" class="event-input">
+        <div class="event-name-content">
+          <input type="text" name="name" value="" class="event-input" placeholder="${data.name || 'New Event'}">
+          <button class="action-btn delete" title="Delete">🗑️</button>
+        </div>
       </td>
       <td class="event-time">
         <select name="start" class="event-input prayer-dropdown" ${!enabledPrayers.length ? 'disabled' : ''}>
-          ${enabledPrayers.map(p => `<option value="${p}" ${p === startValue ? 'selected' : ''}>${p}</option>`).join('')}
-        </select>
+          ${enabledPrayers.map(p => `<option value="${p}" ${p === startValue ? 'selected' : ''}>${p}</option>`).join('')}</select>
+        <div class="time-adjustment">
+          <select name="adjustmentType" class="event-input adjustment-type" data-column="start">
+            <option value="+duration">+</option>
+            <option value="-duration">-</option>
+            <option value="+fraction">+ 1/</option>
+            <option value="-fraction">- 1/</option>
+          </select>
+          <div class="adjustment-value">
+            <input type="number" name="duration" class="event-input duration-input" min="0" max="1440" placeholder="minutes" data-column="start">
+            <input type="number" name="fraction" class="event-input fraction-input" min="2" max="10" placeholder="fraction" style="display: none;" data-column="start">
+          </div>
+        </div>
       </td>
       <td class="event-time">
-        <input type="time" name="end" value="${data.end || '01:00'}" class="event-input">
+        <select name="end" class="event-input prayer-dropdown" ${!enabledPrayers.length ? 'disabled' : ''}>
+          ${enabledPrayers.map(p => `<option value="${p}" ${p === data.end ? 'selected' : ''}>${p}</option>`).join('')}</select>
+        <div class="time-adjustment">
+          <select name="adjustmentType" class="event-input adjustment-type" data-column="end">
+            <option value="+duration">+</option>
+            <option value="-duration">-</option>
+            <option value="+fraction">+ 1/</option>
+            <option value="-fraction">- 1/</option>
+          </select>
+          <div class="adjustment-value">
+            <input type="number" name="duration" class="event-input duration-input" min="0" max="1440" placeholder="minutes" data-column="end">
+            <input type="number" name="fraction" class="event-input fraction-input" min="2" max="10" placeholder="fraction" style="display: none;" data-column="end">
+          </div>
+        </div>
       </td>
       <td class="event-conditions">
-        <input type="text" name="conditions" value="${data.conditions || 'Everyday'}" class="event-input">
-      </td>
-      <td class="event-actions">
-        <button class="action-btn save" title="Edit">✏️</button>
-        <button class="action-btn delete" title="Delete">🗑️</button>
+        <!-- <input type="text" name="conditions" value="" placeholder="${data.conditions || 'not on weekends'}" class="event-input"> -->
       </td>
     `;
     
@@ -75,46 +102,62 @@ function initializeEventsTable() {
     dropdown.disabled = enabledPrayers.length === 0;
   }
   
-  // Toggle row edit mode
-  function toggleEditMode(row, enable) {
-    const inputs = row.querySelectorAll('.event-input');
-    const saveBtn = row.querySelector('.save');
-    
-    // If enabling edit mode, refresh the prayer dropdown first
-    if (enable) {
-      const prayerDropdown = row.querySelector('.prayer-dropdown');
-      if (prayerDropdown) {
-        updatePrayerDropdown(prayerDropdown);
-      }
-    }
-    
-    inputs.forEach(input => input.disabled = !enable);
-    row.classList.toggle('editing', enable);
-    
-    if (saveBtn) {
-      saveBtn.innerHTML = enable ? '💾' : '✏️';
-      saveBtn.title = enable ? 'Save' : 'Edit';
-    }
-    
-    if (enable) {
-      const firstInput = row.querySelector('input');
-      if (firstInput) firstInput.focus();
+  // Update prayer dropdown for a row
+  function updateRowPrayerDropdown(row) {
+    const prayerDropdown = row.querySelector('.prayer-dropdown');
+    if (prayerDropdown) {
+      updatePrayerDropdown(prayerDropdown);
     }
   }
   
-  // Save row data
-  function saveRow(row) {
-    const inputs = row.querySelectorAll('.event-input');
-    const data = {};
+  // Get all events data
+  function getAllEventsData() {
+    const rows = eventsTableBody.querySelectorAll('tr');
+    const events = [];
     
-    inputs.forEach(input => {
-      data[input.name] = input.value;
+    rows.forEach(row => {
+      const inputs = row.querySelectorAll('.event-input');
+      const data = { id: row.dataset.id };
+      
+      inputs.forEach(input => {
+        if (input.name === 'adjustmentType') {
+          if (input.dataset.column === 'start') {
+            data.startAdjustmentType = input.value;
+          } else if (input.dataset.column === 'end') {
+            data.endAdjustmentType = input.value;
+          }
+        } else if (input.name === 'duration' || input.name === 'fraction') {
+          // Find the corresponding adjustment type input
+          const adjustmentTypeInput = input.closest('.time-adjustment').querySelector('.adjustment-type');
+          if (adjustmentTypeInput) {
+            const adjustmentType = adjustmentTypeInput.value;
+            const isDuration = adjustmentType.includes('duration');
+            const isStart = input.dataset.column === 'start';
+            
+            if (isDuration && input.name === 'duration') {
+              if (isStart) data.startOffsetValue = input.value;
+              else data.endOffsetValue = input.value;
+            } else if (!isDuration && input.name === 'fraction') {
+              if (isStart) data.startOffsetValue = input.value;
+              else data.endOffsetValue = input.value;
+            }
+          }
+        } else {
+          data[input.name] = input.value;
+        }
+      });
+      
+      // Clean up any undefined values
+      Object.keys(data).forEach(key => {
+        if (data[key] === undefined || data[key] === '') {
+          delete data[key];
+        }
+      });
+      
+      events.push(data);
     });
     
-    // Here you would typically save to a server
-    console.log('Saving:', data);
-    
-    toggleEditMode(row, false);
+    return events;
   }
   
   // Get enabled prayers from settings
@@ -135,86 +178,88 @@ function initializeEventsTable() {
     }
   }
   
-  // Handle button clicks and double-clicks
-  function handleTableClick(e) {
-    const target = e.target.closest('button');
+  // Handle delete button clicks
+  function handleDeleteClick(e) {
+    const target = e.target.closest('button.delete');
     if (!target) return;
     
-    const row = target.closest('tr');
-    const isSaveBtn = target.classList.contains('save');
-    const isDeleteBtn = target.classList.contains('delete');
+    e.preventDefault();
+    e.stopPropagation();
     
-    // Handle single click on save button (for saving)
-    if (isSaveBtn && e.type === 'click') {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      if (row.classList.contains('editing')) {
-        saveRow(row);
-      }
-      return false;
-    } 
-    // Handle double-click on pen emoji (for editing)
-    else if (isSaveBtn && e.type === 'dblclick') {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      if (!row.classList.contains('editing')) {
-        toggleEditMode(row, true);
-      }
-      return false;
-    }
-    // Handle delete button
-    else if (isDeleteBtn) {
-      e.preventDefault();
-      e.stopPropagation();
+    const row = target.closest('tr');
+    if (row) {
       row.remove();
-      return false;
+      // Trigger save button pulsing when there are changes
+      saveEventsBtn.classList.add('pulse');
     }
+    
+    return false;
   }
   
   // Setup event listeners
   function setupEventListeners() {
     // Add new event
-    addEventBtn?.addEventListener('click', () => {
+    addEventBtn.addEventListener('click', () => {
       const row = addEventRow();
-      toggleEditMode(row, true);
+      updateRowPrayerDropdown(row);
+      setupAdjustmentListeners(row);
+      // Trigger save button pulsing when there are changes
+      saveEventsBtn.classList.add('pulse');
     });
+    
+    // Setup adjustment listeners for existing rows
+    const rows = eventsTableBody.querySelectorAll('tr');
+    rows.forEach(row => setupAdjustmentListeners(row));
     
     // Save all events
-    saveEventsBtn?.addEventListener('click', () => {
+    saveEventsBtn.addEventListener('click', () => {
+      updateButtonIcon(saveEventsBtn, 'loading');
+      
+      const events = getAllEventsData();
+      console.log('Saving all events:', events);
+      
+      // Here you would save all events to your storage/API
+      // For now, we'll just log them
+      
+      // Remove pulse effect after saving
+      saveEventsBtn.classList.remove('pulse');
+      
+      // Show saving animation
       saveEventsBtn.classList.add('saving');
       setTimeout(() => saveEventsBtn.classList.remove('saving'), 500);
-      
-      // Here you would save all events
-      console.log('Saving all events...');
+      updateButtonIcon(saveEventsBtn, 'checkmark', 1000, 'save');
     });
     
-      // Handle button interactions
-    function handleButtonInteraction(e) {
-      const button = e.target.closest('button');
-      if (!button) return;
-      
-      clearTimeout(clickTimeout);
-      
-      if (e.type === 'dblclick') {
-        // Only handle double-clicks on the save button
-        if (button.classList.contains('save')) {
-          handleTableClick(e);
-        }
-      } else {
-        // Handle single clicks after a delay to check for double-click
-        clickTimeout = setTimeout(() => {
-          handleTableClick(e);
-        }, 200);
-      }
-    }
+    // Add event listeners for input changes
+    eventsTableBody.addEventListener('input', () => {
+      // Add pulse effect to save button when inputs change
+      saveEventsBtn.classList.add('pulse');
+    });
     
-    // Add event listeners to the table body
-    eventsTableBody.addEventListener('click', handleButtonInteraction);
-    eventsTableBody.addEventListener('dblclick', handleButtonInteraction);
+    // Add event listener for delete buttons
+    eventsTableBody.addEventListener('click', handleDeleteClick);
   }
   
+  // Handle adjustment type selection
+  function setupAdjustmentListeners(row) {
+    // Get all adjustment types and their corresponding inputs
+    const adjustmentTypes = row.querySelectorAll('.adjustment-type');
+    
+    adjustmentTypes.forEach(adjustmentType => {
+      const adjustmentValue = adjustmentType.closest('.time-adjustment').querySelector('.adjustment-value');
+      const durationInput = adjustmentValue.querySelector('.duration-input');
+      const fractionInput = adjustmentValue.querySelector('.fraction-input');
+
+      if (adjustmentType) {
+        adjustmentType.addEventListener('change', () => {
+          const value = adjustmentType.value;
+          durationInput.style.display = value === '+duration' || value === '-duration' ? 'inline' : 'none';
+          fractionInput.style.display = value === '+fraction' || value === '-fraction' ? 'inline' : 'none';
+        });
+      }
+    });
+  }
+
   // Start the app
   init();
 }

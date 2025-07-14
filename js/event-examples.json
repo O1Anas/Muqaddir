@@ -1,0 +1,152 @@
+[
+  {
+    "id": "1",
+    "name": "Train",
+    "start": "Fajr",
+    "startAdjustmentType": "+duration",
+    "startOffsetValue": "0",
+    "end": "Sunrise",
+    "endAdjustmentType": "+duration",
+    "endOffsetValue": "0"
+  },
+  {
+    "id": "2",
+    "name": "Work",
+    "start": "Sunrise",
+    "startAdjustmentType": "+duration",
+    "startOffsetValue": "60",
+    "end": "Dhuhr",
+    "endAdjustmentType": "+duration",
+    "endOffsetValue": "0"
+  },
+  {
+    "id": "3",
+    "name": "Read Quran",
+    "start": "Dhuhr",
+    "startAdjustmentType": "+duration",
+    "startOffsetValue": "0",
+    "end": "Dhuhr",
+    "endAdjustmentType": "+duration",
+    "endOffsetValue": "10"
+  },
+  {
+    "id": "4",
+    "name": "Last meal",
+    "start": "Maghrib",
+    "startAdjustmentType": "-duration",
+    "startOffsetValue": "30",
+    "end": "Maghrib",
+    "endAdjustmentType": "+duration",
+    "endOffsetValue": "0"
+  },
+  {
+    "id": "5",
+    "name": "Memorize Quran",
+    "start": "Fajr",
+    "startAdjustmentType": "+duration",
+    "startOffsetValue": "0",
+    "end": "Sunrise",
+    "endAdjustmentType": "+duration",
+    "endOffsetValue": "15"
+  },
+  {
+    "id": "6",
+    "name": "Plan tomorrow",
+    "start": "Maghrib",
+    "startAdjustmentType": "+duration",
+    "startOffsetValue": "0",
+    "end": "Maghrib",
+    "endAdjustmentType": "+duration",
+    "endOffsetValue": "10"
+  },
+  {
+    "id": "7",
+    "name": "Mosque lesson",
+    "start": "Maghrib",
+    "startAdjustmentType": "+duration",
+    "startOffsetValue": "0",
+    "end": "Isha",
+    "endAdjustmentType": "+duration",
+    "endOffsetValue": "0"
+  },
+  {
+    "id": "8",
+    "name": "Clean the house",
+    "start": "Sunrise",
+    "startAdjustmentType": "+duration",
+    "startOffsetValue": "10",
+    "end": "Sunrise",
+    "endAdjustmentType": "+duration",
+    "endOffsetValue": "20"
+  },
+  {
+    "id": "9",
+    "name": "Learn Arabic",
+    "start": "Asr",
+    "startAdjustmentType": "+duration",
+    "startOffsetValue": "0",
+    "end": "Maghrib",
+    "endAdjustmentType": "-duration",
+    "endOffsetValue": "20"
+  },
+  {
+    "id": "10",
+    "name": "Practice tajweed",
+    "start": "Asr",
+    "startAdjustmentType": "+duration",
+    "startOffsetValue": "0",
+    "end": "Maghrib",
+    "endAdjustmentType": "-duration",
+    "endOffsetValue": "20"
+  },
+  {
+    "id": "11",
+    "name": "Review hadith",
+    "start": "Dhuhr",
+    "startAdjustmentType": "+duration",
+    "startOffsetValue": "0",
+    "end": "Dhuhr",
+    "endAdjustmentType": "+duration",
+    "endOffsetValue": "20"
+  },
+  {
+    "id": "12",
+    "name": "Read morning adhkar",
+    "start": "Fajr",
+    "startAdjustmentType": "+duration",
+    "startOffsetValue": "0",
+    "end": "Fajr",
+    "endAdjustmentType": "+duration",
+    "endOffsetValue": "5"
+  },
+  {
+    "id": "13",
+    "name": "Read evening adhkar",
+    "start": "Asr",
+    "startAdjustmentType": "+duration",
+    "startOffsetValue": "0",
+    "end": "Asr",
+    "endAdjustmentType": "+duration",
+    "endOffsetValue": "5"
+  },
+  {
+    "id": "14",
+    "name": "Ummah-related project",
+    "start": "Sunrise",
+    "startAdjustmentType": "+duration",
+    "startOffsetValue": "0",
+    "end": "Sunrise",
+    "endAdjustmentType": "+duration",
+    "endOffsetValue": "120"
+  },
+  {
+    "id": "15",
+    "name": "Study beneficial knowledge",
+    "start": "Asr",
+    "startAdjustmentType": "+duration",
+    "startOffsetValue": "0",
+    "end": "Maghrib",
+    "endAdjustmentType": "-fraction",
+    "endOffsetValue": "0.5"
+  }
+]
