@@ -114,101 +114,69 @@
 
 .time-adjustment {
   display: flex;
-  align-items: center;
-  gap: 2px;
 }
 
-.time-adjustment select,
-.time-adjustment input {
-  padding: 2px 4px;
-  font-size: 0.8em;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background-color: rgba(255, 255, 255, 0.05);
-  color: white;
-  min-width: 60px;
-}
-
-.time-adjustment .fraction-prefix {
-  margin: 0 4px;
-  color: white;
-}
-
-.time-adjustment .adjustment-value {
+.events-table .event-name-content {
   display: flex;
-  align-items: center;
-  gap: 2px;
+}
+
+.events-table .event-actions-container {
+  display: flex;
+}
+
+.events-table .group-dropdown {
+  flex: 1;
 }
 
 /* Column Widths */
 .events-table .event-name {
-  width: 10%;
-}
-
-.events-table .event-time {
   width: 20%;
 }
 
+.events-table .event-time {
+  width: 13%;
+}
+
 .events-table .event-conditions {
-  width: 50%;
+  width: 54%;
 }
 
 /* Prayer Dropdown */
 .events-table .prayer-dropdown {
   width: 100%;
-  padding: 4px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
-  background-color: rgba(0, 0, 0, 0.2);
-  color: white;
-  font-size: 0.9em;
   cursor: pointer;
-  text-align-last: center;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  appearance: none;
-  padding-right: 25px;
-  z-index: 10000;
 }
 
 .events-table .prayer-dropdown:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  z-index: 10000;
 }
 
 .events-table .prayer-dropdown option {
   background-color: #2c3e50;
   color: white;
-  padding: 8px;
-  z-index: 10000;
-}
-
-.events-table .prayer-dropdown:focus {
-  outline: none;
-  border-color: #3498db;
-  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.3);
-}
-
-/* Table Row Hover */
-.events-table tbody tr:hover {
-  background-color: rgba(255, 255, 255, 0.05);
 }
 
 /* Input Fields */
 .event-input {
   width: 100%;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 3px;
-  color: white;
-  font-size: 0.95em;
-  box-sizing: border-box;
 }
 
-.event-input:focus {
-  outline: none;
-  border-color: rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.15);
+.time-adjustment select,
+.time-adjustment input {
+  font-size: 0.8em;
+}
+
+.time-adjustment select {
+  min-width: 2.7rem; 
+}
+
+.time-adjustment .fraction-input {
+  min-width: 2.5rem;
+}
+
+.time-adjustment .duration-input {
+  min-width: 2.5rem;
 }
 
 /* Action Buttons */
@@ -216,7 +184,6 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: rgba(255, 255, 255, 0.7);
   border-radius: 3px;
   transition: all 0.2s;
   font-size: 1em;   
@@ -268,16 +235,6 @@
   transition: all 0.2s ease;
 }
 
-.add-event-btn:hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.5);
-}
-
-.add-event-btn span {
-  font-size: 1.2em;
-  font-weight: bold;
-}
-
 /* Save Settings Button */
 .save-settings-btn {
   background: none;
@@ -319,9 +276,4 @@
 /* Editable Row */
 .editing {
   background-color: rgba(255, 255, 255, 0.05) !important;
-}
-
-.editing .event-input {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.3);
 }

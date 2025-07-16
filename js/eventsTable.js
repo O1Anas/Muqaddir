@@ -5,10 +5,170 @@ function initializeEventsTable() {
   if (isInitialized) return;
   isInitialized = true;
 
+  // Initialize groups if needed
+  if (!window.eventGroups) {
+    console.error('eventGroups not loaded');
+    return;
+  }
+  
+  // Create default group if none exist
+  if (window.eventGroups.getAllGroups().length === 0) {
+    window.eventGroups.addGroup();
+  }
+
   // Expose functions globally
   window.getAllEventsData = getAllEventsData;
   window.getEnabledPrayers = getEnabledPrayers;
+  window.getGroups = () => window.eventGroups.getAllGroups();
+
+  // Group-related functions are now in eventGroups.js
+
+  function updateEventRowsWithGroupColor(groupId, color) {
+    // Find all event rows that use this group and update their color
+    document.querySelectorAll(`.event-actions-container select.group-dropdown option[value="${groupId}"]`).forEach(option => {
+      const row = option.closest('tr');
+      if (row) {
+        const groupBadge = row.querySelector('.group-badge');
+        if (groupBadge) {
+          groupBadge.style.backgroundColor = color;
+        }
+      }
+    });
+  }
+
+  function updateGroupsUI() {
+    const groupsSection = document.querySelector('.groups-section');
+    const label = groupsSection.querySelector('label');
+    const addBtn = groupsSection.querySelector('.group-add-btn');
+    
+    // Clear only the group items
+    groupsSection.querySelectorAll('.group-item:not(.group-add-btn)').forEach(item => item.remove());
+
+    // Add existing groups
+    window.eventGroups.getAllGroups().forEach(group => {
+      const groupItem = document.createElement('div');
+      groupItem.className = 'group-item';
+      groupItem.dataset.groupId = group.id;
+      groupItem.innerHTML = `
+        <div class="group-color-container">
+          <div class="group-color" style="background-color: ${group.color}" data-group-id="${group.id}"></div>
+          <input type="color" class="group-color-picker" value="${group.color}" data-group-id="${group.id}">
+        </div>
+        <span class="group-name">${group.name}</span>
+      `;
+      groupsSection.insertBefore(groupItem, addBtn);
+    });
+
+    // Add color picker event listeners
+    groupsSection.querySelectorAll('.group-color').forEach(colorEl => {
+      let clickTimer;
+      
+      // Single click - show color picker
+      colorEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        clearTimeout(clickTimer);
+        clickTimer = setTimeout(() => {
+          const picker = colorEl.nextElementSibling;
+          picker.click(); // Trigger the color picker
+        }, 200); // Delay to check for double click
+      });
+      
+      // Double click - delete group
+      colorEl.addEventListener('dblclick', (e) => {
+        e.stopPropagation();
+        clearTimeout(clickTimer);
+        const groupId = parseInt(colorEl.dataset.groupId);
+        if (confirm('Are you sure you want to delete this group? Events using this group will be unassigned.')) {
+          // Delete the group
+          if (window.eventGroups.deleteGroup(groupId)) {
+            // Update any events using this group
+            document.querySelectorAll(`.event-actions-container select.group-dropdown option[value="${groupId}"]`).forEach(option => {
+              option.selected = false;
+              option.closest('select').value = 'none';
+            });
+            // Update UI
+            updateGroupsUI();
+          }
+        }
+      });
+    });
+
+    // Handle color changes
+    groupsSection.querySelectorAll('.group-color-picker').forEach(picker => {
+      picker.addEventListener('input', (e) => {
+        const groupId = parseInt(picker.dataset.groupId);
+        const newColor = picker.value;
+        if (window.eventGroups.updateGroupColor(groupId, newColor)) {
+          const colorEl = picker.previousElementSibling;
+          colorEl.style.backgroundColor = newColor;
+          // Update any events using this group's color
+          updateEventRowsWithGroupColor(groupId, newColor);
+        }
+      });
+      
+      // Hide the color picker input (we'll show our custom UI)
+      picker.style.position = 'absolute';
+      picker.style.opacity = '0';
+      picker.style.pointerEvents = 'none';
+      picker.style.width = '1px';
+      picker.style.height = '1px';
+    });
+
+    // Add event listeners to new group items
+    groupsSection.querySelectorAll('.group-item:not(.group-add-btn)').forEach(item => {
+      item.addEventListener('dblclick', (e) => {
+        // Don't trigger if we're clicking on the color picker
+        if (e.target.closest('.group-color-container')) return;
+        
+        const nameSpan = item.querySelector('.group-name');
+        const currentName = nameSpan.textContent;
+        const groupId = parseInt(item.dataset.groupId);
+        
+        // Create input
+        const input = document.createElement('input');
+        input.value = currentName;
+        input.className = 'group-name-edit';
+        
+        // Replace the span with input
+        nameSpan.replaceWith(input);
+        input.focus();
+        
+        const saveGroupName = () => {
+          const newGroupName = input.value.trim();
+          if (newGroupName && newGroupName !== currentName) {
+            const group = window.eventGroups.getGroupById(groupId);
+            if (group) {
+              group.name = newGroupName;
+              window.eventGroups.saveGroups();
+              // Update the UI to reflect changes
+              updateGroupsUI();
+              return;
+            }
+          }
+          // If no changes or invalid, just update UI to revert
+          updateGroupsUI();
+        };
+        
+        // Handle blur and enter key
+        input.addEventListener('blur', saveGroupName, { once: true });
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            input.blur(); // This will trigger the blur event
+            e.preventDefault();
+          } else if (e.key === 'Escape') {
+            updateGroupsUI(); // Just refresh to discard changes
+          }
+        });
+      });
+    });
+  }
   
+  const addBtn = document.querySelector('.group-add-btn');
+  addBtn.addEventListener('click', () => {
+    window.eventGroups.addGroup();
+    updateGroupsUI(); // Make sure UI updates after adding a group
+  });
+
   // DOM Elements
   const eventsTableBody = document.getElementById('eventsTableBody');
   const addEventBtn = document.getElementById('addEventBtn');
@@ -17,6 +177,27 @@ function initializeEventsTable() {
   // State
   let clickTimeout = null;
   
+  // Update all group dropdowns in the events table
+  window.updateGroupDropdowns = function() {
+    const dropdowns = document.querySelectorAll('.group-dropdown');
+    dropdowns.forEach(dropdown => {
+      const currentValue = dropdown.value;
+      const groupOptions = window.eventGroups.getAllGroups().map(g => 
+        `<option value="${g.id}" style="--color: ${g.color}">${g.name}</option>`
+      ).join('');
+      
+      dropdown.innerHTML = `
+        <option value="none">No Group</option>
+        ${groupOptions}
+      `;
+      
+      // Restore the selected value if it still exists
+      if (currentValue && dropdown.querySelector(`option[value="${currentValue}"]`)) {
+        dropdown.value = currentValue;
+      }
+    });
+  };
+
   // Initialize the table
   function init() {
     // Add initial events if needed
@@ -24,6 +205,8 @@ function initializeEventsTable() {
       addEventRow();
     }
     setupEventListeners();
+    updateGroupsUI();
+    window.updateGroupDropdowns(); // Initialize dropdowns
   }
   
   // Add a new event row
@@ -38,7 +221,15 @@ function initializeEventsTable() {
       <td class="event-name">
         <div class="event-name-content">
           <input type="text" name="name" value="" class="event-input" placeholder="${data.name || 'New Event'}">
-          <button class="action-btn delete" title="Delete">🗑️</button>
+          <div class="event-actions-container">
+            <select class="group-dropdown" name="group">
+              <option value="none">No Group</option>
+              ${window.eventGroups.getAllGroups().map(g => `
+                <option value="${g.id}" style="--color: ${g.color}">${g.name}</option>
+              `).join('')}
+            </select>
+            <button class="action-btn delete" title="Delete">🗑️</button>
+          </div>
         </div>
       </td>
       <td class="event-time">
@@ -118,6 +309,17 @@ function initializeEventsTable() {
     rows.forEach(row => {
       const inputs = row.querySelectorAll('.event-input');
       const data = { id: row.dataset.id };
+      
+      // Get the selected group info
+      const groupSelect = row.querySelector('.event-actions-container select');
+      if (groupSelect && groupSelect.value !== 'none') {
+        const selectedOption = groupSelect.options[groupSelect.selectedIndex];
+        data.group = {
+          id: groupSelect.value,
+          name: selectedOption.text.trim(),
+          color: getComputedStyle(selectedOption).getPropertyValue('--color').trim() || '#000000'
+        };
+      }
       
       inputs.forEach(input => {
         if (input.name === 'adjustmentType') {
@@ -217,6 +419,7 @@ function initializeEventsTable() {
       
       const events = getAllEventsData();
       console.log('Saving all events:', events);
+      localStorage.setItem('userEvents', JSON.stringify(events));
       
       // Here you would save all events to your storage/API
       // For now, we'll just log them

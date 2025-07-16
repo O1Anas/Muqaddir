@@ -127,7 +127,8 @@ class PrayerTimesParser {
                     borderColor: 'rgba(255, 255, 255, 0.5)',
                     extendedProps: {
                         isPrayerTime: true,
-                        prayerName: cleanPrayerName
+                        prayerName: cleanPrayerName,
+                        group: 'prayers'
                     }
                 });
             });

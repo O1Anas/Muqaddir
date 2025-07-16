@@ -920,7 +920,7 @@ calculateBtn.addEventListener('click', async () => {
 
         previousApiUrl = apiUrl;
 
-        downloadBtn.classList.add('show');
+        exportBtn.classList.add('show');
 
         // Show checkmark for successful calculation
         updateButtonIcon(calculateBtn, 'checkmark', 1000, 'calculate');

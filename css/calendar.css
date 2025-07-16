@@ -75,7 +75,7 @@
 }
 
 .fc-timegrid-slot {
-  height: 0.1em !important;
+  /* height: 0.1em !important; */
   font-size: 0.8em;
   color: #6c757d;
 }
@@ -207,3 +207,9 @@
   font-size: 1.5em;
   font-weight: 700;
 } */
+
+
+.fc-timegrid-slot {
+  height: 40px !important;
+  /* increase slot height */
+}

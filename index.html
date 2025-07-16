@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Muqaddir - مُــــــــقَــــــــدِّر</title>
+  <title>Muqaddir - مُقَدِّرُ العادات بِالنِّسبةِ إلى الصَّلَوات</title>
   <link rel="stylesheet" href="css/styles.css">
   <link rel="stylesheet" href="css/calendar.css">
   <link rel="stylesheet" href="css/sidebar.css">
   <link rel="stylesheet" href="css/sidebarControls.css">
   <link rel="stylesheet" href="css/prayerEventControls.css">
   <link rel="stylesheet" href="css/eventsTable.css">
+  <link rel="stylesheet" href="css/eventGroups.css">
   <link rel="icon" href="icon.png" type="image/png">
 </head>
 <body>
@@ -19,14 +20,14 @@
       <h1>Muqaddir</h1>
       <img src="icon.png" alt="Icon" class="header-icon">
       <h1>مُــــــــقَــــــــدِّر</h1>
-      <button id="downloadBtn" class="download-btn">
+      <button id="exportBtn" class="export-btn show">
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
           stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
           <polyline points="7 10 12 15 17 10"></polyline>
           <line x1="12" y1="15" x2="12" y2="3"></line>
         </svg>
-        Download stats
+        <span>Export events</span>
       </button>
     </div>
 
@@ -145,6 +146,12 @@
             </button>
           </div>
         </div>
+        <div class="groups-section">
+          <label>groups:</label>
+          <div class="group-item group-add-btn">
+            <span>+</span>
+          </div>
+        </div>
         <div class="events-content">
           <div class="events-table-container">
             <table class="events-table">
@@ -170,11 +177,13 @@
     </div>
   </div>
   
-  <script src="https://cdn.jsdelivr.net/npm/ical.js@2.2.0/dist/ical.min.js" integrity="sha256-VQjkQQ9HcGeZzd71YYBOdP4M9d4BKbgKmdjJVNuqg5A=" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ical.js@1.4.0/build/ical.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.17/index.global.min.js" integrity="sha256-+foa3bjeqH6ZYWiY80Iubd+THwl+gMAxw+Der7zpEHQ=" crossorigin="anonymous"></script>
   <script src="js/utils.js"></script>
+  <script src="js/eventGroups.js"></script>
   <script src="js/eventsTable.js"></script>
   <script src="js/calendar.js"></script>
+  <script src="js/eventsExporter.js"></script>
   <script src="js/userEventsParser.js"></script>
   <script src="js/prayerTimesParser.js"></script>
   <script src="js/prayerEventControls.js"></script>

@@ -1,0 +1,80 @@
+.groups-section {
+  display: flex;
+  flex-direction: row;
+  gap: 0 0.25rem;
+  flex-wrap: wrap;
+}
+
+.groups-section label {
+ font-weight: bold;
+}
+
+.group-item {
+  display: flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.group-item:hover {
+  background: var(--hover-bg);
+}
+
+.group-color-container {
+  position: relative;
+  display: inline-block;
+  margin: auto 0;
+}
+
+.group-item .group-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 1px solid #333;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  display: inline-block;
+  vertical-align: bottom;
+}
+
+.group-item .group-color:hover {
+  transform: scale(1.2);
+}
+
+.group-color-picker {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+}
+
+.group-item .group-name {
+  font-size: 0.9rem;
+  display: block;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  border-right: 1px solid #333;
+}
+
+.group-item .group-name.editing {
+  display: none;
+}
+
+.group-item .group-name + input {
+  display: none;
+}
+
+.group-item .group-name-edit {
+  display: inline-block;
+  width: 4.2em;
+  border: dashed 1px #333;
+  outline: none;
+  background: transparent;
+  padding: 0 0.25rem 0 0;
+  margin: 0 0.25rem;
+  border-right: 1px solid #333;
+}
+
+.group-add-btn {
+  cursor: pointer;
+}

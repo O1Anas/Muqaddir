@@ -93,7 +93,10 @@ document.addEventListener('DOMContentLoaded', function() {
     dayMaxEvents: true, // Show "more" link when too many events
     allDaySlot: false,
     nowIndicator: true,
+    slotDuration: '00:10:00',   // grid shows 15-minute slots
+    snapDuration: '00:01:00',   // drag snaps every 5 minutes
     scrollTime: new Date().toTimeString().slice(0,8),  // scroll to the current time, e.g. "14:23:00"
+    scrollTimeReset: false,
     // Add these two lines to control visible time range
     // slotMinTime: '03:00:00',  // timeline starts at 3 AM ? no, some people use this time
     // slotMaxTime: '23:00:00',  // timeline ends at 10 PM ? no, some people use this time
@@ -101,12 +104,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // You can add events here or fetch them dynamically
     events: [
       // Example event
-      {
-        title: 'Event 1',
-        start: new Date(),
-        allDay: false,
-        duration: { hours: 2 },
-      }
+      // {
+      //   title: 'Event 1',
+      //   start: new Date(),
+      //   allDay: false,
+      //   duration: { hours: 2 },
+      // }
     ]
   });
 
@@ -114,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
   calendar.render();
   
   // Load saved events
-  loadCalendarEvents(calendar);
+  // loadCalendarEvents(calendar);
   
   // Expose the calendar instance and a utility object globally
   window.calendar = calendar;
@@ -131,6 +134,8 @@ document.addEventListener('DOMContentLoaded', function() {
   // Update height after calendar renders
   setTimeout(updateCalendarHeight, 100);
   
+  // Track current hour index
+  let currentHourIndex = 0;
   // Add keyboard shortcuts for calendar navigation
   document.addEventListener('keydown', function(e) {
     // Only handle keys when not focused on input fields
@@ -151,6 +156,42 @@ document.addEventListener('DOMContentLoaded', function() {
     else if (key === 't') {
       e.preventDefault();
       calendar.today();
+    }
+    // 's' key - cycle through 10-minute intervals
+    else if (key === 's') {
+      e.preventDefault();
+      
+      // Generate 10-minute intervals array (00:00 to 23:50)
+      const intervals = Array.from({length: 144}, (_, i) => {
+        const hour = Math.floor(i / 6);
+        const minute = (i % 6) * 10;
+        return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      });
+      
+      // Get next interval and update index
+      const nextIndex = (currentHourIndex + 1) % intervals.length;
+      currentHourIndex = nextIndex;
+      
+      calendar.scrollToTime(intervals[nextIndex]);
+      // console.log(intervals[nextIndex]);
+    }
+    // 'z' key - cycle through 10-minute intervals backwards
+    else if (key === 'z') {
+      e.preventDefault();
+      
+      // Generate 10-minute intervals array (00:00 to 23:50)
+      const intervals = Array.from({length: 144}, (_, i) => {
+        const hour = Math.floor(i / 6);
+        const minute = (i % 6) * 10;
+        return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      });
+      
+      // Get previous interval and update index
+      const prevIndex = (currentHourIndex - 1 + intervals.length) % intervals.length;
+      currentHourIndex = prevIndex;
+      
+      calendar.scrollToTime(intervals[prevIndex]);
+      // console.log(intervals[prevIndex]);
     }
   });
   

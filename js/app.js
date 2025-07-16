@@ -1,7 +1,7 @@
 // DOM Elements
 const gpsBtn = document.getElementById('gpsBtn');
 const calculateBtn = document.getElementById('calculateBtn');
-const downloadBtn = document.getElementById('downloadBtn');
+const exportBtn = document.getElementById('exportBtn');
 const calculationMethodSelect = document.getElementById('calculationMethod');
 const latitudeInput = document.getElementById('latitude');
 const longitudeInput = document.getElementById('longitude');
@@ -91,7 +91,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   setSuggestionSelected(false);
   suggestionSelected = false;
 
-  downloadBtn.addEventListener('click', downloadStats);
+  exportBtn.addEventListener('click', downloadStats);
 
   // Set up address autocomplete
   const addressInput = document.getElementById('address');

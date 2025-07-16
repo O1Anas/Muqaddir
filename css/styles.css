@@ -293,9 +293,10 @@ select {
   border: 1px solid #333;
   border-radius: 0.4rem;
   font-size: 0.75rem;
-  text-align: center;
+  text-align: center !important;
   background-color: #111;
   color: #ffffff;
+  cursor: pointer;
 }
 
 .select-method, .year-row, .select-year {
@@ -360,7 +361,7 @@ input::placeholder {
 /* ========== Buttons ========== */
 .tab-btn,
 .gps-btn,
-.download-btn,
+.export-btn,
 .calc-btn {
   display: flex;
   align-items: center;
@@ -387,7 +388,9 @@ input::placeholder {
   background: #eb2525;
 }
 
-.download-btn {
+.export-btn {
+  display: flex;
+  gap: 4px;
   background: #16a34a;
   position: absolute;
   right: 0;
@@ -396,7 +399,7 @@ input::placeholder {
   transition: opacity 0.3s ease-in-out, visibility 0.3s;
 }
 
-.download-btn.show {
+.export-btn.show {
   opacity: 1;
   visibility: visible;
 }
@@ -407,13 +410,13 @@ input::placeholder {
 }
 
 .gps-btn:hover,
-.download-btn:hover,
+.export-btn:hover,
 .calc-btn:hover {
   opacity: 0.8;
 }
 
 .gps-btn:disabled,
-.download-btn:disabled,
+.export-btn:disabled,
 .calc-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
