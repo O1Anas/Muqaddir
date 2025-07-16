@@ -860,7 +860,7 @@ calculateBtn.addEventListener('click', async () => {
 
         // Calculate end date (6 months from start date)
         const endDate = new Date(startDate);
-        endDate.setMonth(endDate.getMonth() + 1); // range is 1 month, max is 11 with this approach (still fast & optimized)
+        endDate.setMonth(endDate.getMonth() + 11); // range is 1 month, max is 11 with this approach (still fast & optimized)
 
         // Format dates as DD-MM-YYYY
         const formatDate = (date) => {

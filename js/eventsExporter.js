@@ -6,7 +6,11 @@
  * @returns {string} Sanitized string
  */
 function sanitizeFilename(str) {
-    return str.replace(/[^a-zA-Z0-9\-_]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+    // Allow Arabic letters (Unicode range \u0600-\u06FF) and basic filename-safe characters
+    return str.replace(/[^\u0600-\u06FFa-zA-Z0-9\-_\. ]/g, '-')
+              .replace(/-+/g, '-')
+              .replace(/^-|-$/g, '')
+              .trim();
 }
 
 /**
@@ -15,35 +19,117 @@ function sanitizeFilename(str) {
  * @param {Array} events - Array of events to include in the ICS
  */
 function createAndDownloadICS(groupName, events) {
-    console.log(`Creating ICS file for group: ${groupName} with ${events.length} events`);
-    
+    // console.log(`Creating ICS file for group: ${groupName} with ${events.length} events`);
+
     const ical = new ICAL.Component('vcalendar');
-    
-    events.forEach((event, index) => {
-        console.log(`Processing event ${index + 1}/${events.length}: ${event.title}`);
-        const vevent = new ICAL.Component('vevent');
-        
-        // Add required properties
-        vevent.addPropertyWithValue('summary', event.title);
-        
-        // Format dates as ISO strings
-        const start = event.start instanceof Date ? event.start.toISOString() : event.start;
-        vevent.addPropertyWithValue('dtstart', start);
-        
-        if (event.end) {
-            const end = event.end instanceof Date ? event.end.toISOString() : event.end;
-            vevent.addPropertyWithValue('dtend', end);
+
+    // --- Key Fix: Robust Date Handling --- //
+
+    // 1. Helper to reliably convert any input into a UTC Date object.
+    const toUTCDate = (dateInput) => {
+        // If it's a string without a 'Z', add it to ensure UTC parsing.
+        if (typeof dateInput === 'string' && !dateInput.endsWith('Z')) {
+            return new Date(dateInput + 'Z');
         }
-        
-        // Add optional properties
+        // For existing Date objects or strings already in UTC format.
+        return new Date(dateInput);
+    };
+
+    // 2. Helper to reliably check if a date is the day before another, using UTC.
+    const isPreviousDay = (current, previous) => {
+        // Normalize dates to midnight UTC to compare them accurately
+        const currentDay = new Date(Date.UTC(current.getUTCFullYear(), current.getUTCMonth(), current.getUTCDate()));
+        const previousDay = new Date(Date.UTC(previous.getUTCFullYear(), previous.getUTCMonth(), previous.getUTCDate()));
+
+        // Check if the difference is exactly one day in milliseconds
+        const oneDayInMs = 24 * 60 * 60 * 1000;
+        return currentDay.getTime() - previousDay.getTime() === oneDayInMs;
+    };
+
+    // --- End of Fix --- //
+
+    // Sort events by start time, ensuring all dates are UTC for comparison.
+    const sortedEvents = [...events].sort((a, b) => {
+        return toUTCDate(a.start).getTime() - toUTCDate(b.start).getTime();
+    });
+
+    sortedEvents.forEach((event, index) => {
+        // console.log(`[Event ${index}] Processing: "${event.title}"`);
+        const vevent = new ICAL.Component('vevent');
+
+        const start = toUTCDate(event.start);
+        const end = event.end ? toUTCDate(event.end) : null;
+        // console.log(`  - Current Start (UTC): ${start.toISOString()}`);
+
+        vevent.addPropertyWithValue('summary', event.title);
+        vevent.addPropertyWithValue('dtstart', start.toISOString());
+        if (end) {
+            vevent.addPropertyWithValue('dtend', end.toISOString());
+        }
+
         if (event.location) {
             vevent.addPropertyWithValue('location', event.location);
         }
-        
+
+        let descriptionLines = [];
         if (event.description) {
-            vevent.addPropertyWithValue('description', event.description);
+            descriptionLines.push(event.description);
         }
-        
+
+        if (start && end) {
+            const durationMs = end.getTime() - start.getTime();
+            const durationHours = Math.floor(durationMs / (1000 * 60 * 60));
+            const durationMinutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+
+            let durationStr = '';
+            if (durationHours > 0) {
+                durationStr = `${durationHours}hr${durationHours !== 1 ? 's' : ''}`;
+                if (durationMinutes > 0) {
+                    durationStr += `${durationMinutes}min${durationMinutes !== 1 ? 's' : ''}`;
+                }
+            } else if (durationMinutes > 0) {
+                durationStr = `${durationMinutes}min${durationMinutes !== 1 ? 's' : ''}`;
+            } else {
+                durationStr = '';
+            }
+            descriptionLines.push(`${durationStr}`);
+
+            if (index > 0) {
+                const prevEvent = sortedEvents[index - 1];
+                const prevEventStart = toUTCDate(prevEvent.start);
+
+                // console.log(`  - Comparing with Prev Event: "${prevEvent.title}"`);
+                // console.log(`  - Prev Start (UTC):    ${prevEventStart.toISOString()}`);
+
+                const titleMatch = prevEvent.title === event.title;
+                const isPrevDay = isPreviousDay(start, prevEventStart);
+                // console.log(`  - Title Match: ${titleMatch}, Is Previous Day: ${isPrevDay}`);
+
+                if (titleMatch && isPrevDay) {
+                    // console.log('    Match found! Calculating duration change.');
+                    const prevEventEnd = toUTCDate(prevEvent.end);
+                    const prevDurationMs = prevEventEnd.getTime() - prevEventStart.getTime();
+                    const durationChangeMs = durationMs - prevDurationMs;
+
+                    if (Math.abs(durationChangeMs) >= 60000) {
+                        const changeMinutes = Math.round(durationChangeMs / (1000 * 60));
+                        const direction = changeMinutes > 0 ? '+' : '-';
+                        const absChange = Math.abs(changeMinutes);
+                        const timeUnit = absChange === 1 ? 'min' : 'mins';
+                        const changeLine = `${direction}${absChange}${timeUnit}`;
+                        descriptionLines.push(changeLine);
+                        // console.log(`    - Appending to description: "${changeLine}"`);
+                    } else {
+                        // console.log('    - Duration change is less than 1 minute, not adding line.');
+                    }
+                }
+            }
+        }
+
+        if (descriptionLines.length > 0) {
+            vevent.addPropertyWithValue('description', descriptionLines.join('\n'));
+        }
+
         ical.addSubcomponent(vevent);
     });
     
@@ -62,7 +148,7 @@ function createAndDownloadICS(groupName, events) {
     window.URL.revokeObjectURL(url);
     document.body.removeChild(a);
     
-    console.log(`Successfully created ICS file for group: ${groupName}`);
+    // console.log(`Successfully created ICS file for group: ${groupName}`);
 }
 
 async function exportEventsToICS(calendar) {
@@ -71,7 +157,7 @@ async function exportEventsToICS(calendar) {
         return 0;
     }
     
-    console.log('Starting event export process...');
+    // console.log('Starting event export process...');
     const events = calendar.getEvents();
     console.log(`Found ${events.length} total events to process`);
     
@@ -102,7 +188,7 @@ async function exportEventsToICS(calendar) {
     const groupedEvents = {};
     
     otherEvents.forEach((event, index) => {
-        console.log(`Processing non-prayer event ${index + 1}/${otherEvents.length}: ${event.title}`);
+        // console.log(`Processing non-prayer event ${index + 1}/${otherEvents.length}: ${event.title}`);
         
         // Check for group in extendedProps (could be direct string or object with name property)
         let groupName = event.extendedProps?.group;
@@ -122,24 +208,24 @@ async function exportEventsToICS(calendar) {
         
         // Initialize group if it doesn't exist
         if (!groupedEvents[groupName]) {
-            console.log(`Creating new group: ${groupName}`);
+            // console.log(`Creating new group: ${groupName}`);
             groupedEvents[groupName] = [];
         }
         
         groupedEvents[groupName].push(event);
     });
     
-    console.log(`Grouped remaining events into ${Object.keys(groupedEvents).length} groups`);
-    console.log('Group names:', Object.keys(groupedEvents));
+    // console.log(`Grouped remaining events into ${Object.keys(groupedEvents).length} groups`);
+    // console.log('Group names:', Object.keys(groupedEvents));
     
     // Create a separate ICS file for each remaining group
     Object.entries(groupedEvents).forEach(([groupName, groupEvents]) => {
-        console.log(`Processing group '${groupName}' with ${groupEvents.length} events`);
+        // console.log(`Processing group '${groupName}' with ${groupEvents.length} events`);
         createAndDownloadICS(groupName, groupEvents);
     });
     
     filesCreated += Object.keys(groupedEvents).length;
-    console.log('Event export process completed');
+    // console.log('Event export process completed');
     return filesCreated; // Return total number of files created
 }
 
@@ -149,11 +235,11 @@ window.exportEventsToICS = exportEventsToICS;
 // Add click handler to existing export button
 if (typeof exportBtn !== 'undefined') {
     exportBtn.addEventListener('click', async () => {
-        console.log('Export button clicked, starting export process...');
+        // console.log('Export button clicked, starting export process...');
         try {
             updateButtonIcon(exportBtn, 'loading');
             const filesCreated = await exportEventsToICS(calendar);
-            console.log(`Successfully created ${filesCreated} ICS files`);
+            // console.log(`Successfully created ${filesCreated} ICS files`);
             updateButtonIcon(exportBtn, 'checkmark', 1000, 'download');
         } catch (error) {
             console.error('Error during export:', error);

@@ -47,20 +47,69 @@ class UserEventsParser {
                         return;
                     }
 
-                    const event = {
-                        id: `${userEvent.id}-${date}`, // Unique ID for each day
-                        title: userEvent.name,
-                        start: startPrayer.end, // Prayer end time (to not interfere with a prayer's event time (that isn't 0 mins))
-                        end: endPrayer.start,
-                        color: userEvent.group ? userEvent.group.color : 'green',
-                        extendedProps: {
-                            isPrayerInterval: true,
-                            startPrayer: userEvent.end,
-                            endPrayer: userEvent.start,
-                            date: date,
-                            group: userEvent.group ? userEvent.group.name : null
-                        }
-                    };
+                    // Helper function to adjust time based on adjustment type and value
+                const adjustTime = (time, adjustmentType, offsetValue) => {
+                    if (!time || !adjustmentType || !offsetValue) return time;
+                    
+                    const minutes = parseInt(offsetValue, 10);
+                    if (isNaN(minutes)) return time;
+                    
+                    const result = new Date(time);
+                    
+                    if (adjustmentType === '+duration') {
+                        result.setMinutes(result.getMinutes() + minutes);
+                    } else if (adjustmentType === '-duration') {
+                        result.setMinutes(result.getMinutes() - minutes);
+                    }
+                    
+                    return result;
+                };
+
+                // For start time:
+                // - If offset is '0', always use startPrayer.end
+                // - If offset is not '0' and adjustment is '-duration', use startPrayer.start
+                // - Otherwise, use startPrayer.end
+                const startBaseTime = (userEvent.startOffsetValue === '0' || userEvent.startAdjustmentType !== '-duration') 
+                    ? startPrayer.end 
+                    : startPrayer.start;
+                
+                // For end time:
+                // - If offset is not '0' and adjustment is '+duration', use endPrayer.end
+                // - Otherwise, use endPrayer.start
+                const endBaseTime = (userEvent.endOffsetValue !== '0' && userEvent.endAdjustmentType === '+duration')
+                    ? endPrayer.end
+                    : endPrayer.start;
+                
+                const adjustedStart = adjustTime(
+                    startBaseTime,
+                    userEvent.startAdjustmentType,
+                    userEvent.startOffsetValue
+                );
+                
+                const adjustedEnd = adjustTime(
+                    endBaseTime,
+                    userEvent.endAdjustmentType,
+                    userEvent.endOffsetValue
+                );
+
+                const event = {
+                    id: `${userEvent.id}-${date}`, // Unique ID for each day
+                    title: userEvent.name,
+                    start: adjustedStart,
+                    end: adjustedEnd,
+                    color: userEvent.group ? userEvent.group.color : 'green',
+                    extendedProps: {
+                        isPrayerInterval: true,
+                        startPrayer: userEvent.end,
+                        endPrayer: userEvent.start,
+                        date: date,
+                        group: userEvent.group ? userEvent.group.name : null,
+                        startAdjustment: userEvent.startAdjustmentType,
+                        startOffset: userEvent.startOffsetValue,
+                        endAdjustment: userEvent.endAdjustmentType,
+                        endOffset: userEvent.endOffsetValue
+                    }
+                };
                     resultingEvents.push(event);
                 });
             });
