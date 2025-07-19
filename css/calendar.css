@@ -86,8 +86,9 @@
   color: #6c757d;
 }
 
-.fc-day.fc-day-fri.fc-day-today.fc-timegrid-col {
-  background-color: #00ff6a7a !important;
+.fc-day.fc-day-today.fc-timegrid-col,
+.fc-day-today .fc-daygrid-day-frame {
+  background-color: #16a34a !important;
 }
 
 /* Events */
@@ -115,17 +116,7 @@
 .fc-daygrid-day-number {
   padding: 0px !important;
   font-size: 0.9em;
-  color: #4a5568;
   font-weight: 500;
-}
-
-.fc-day-today {
-  background-color: #f0fdf4 !important;
-}
-
-.fc-day-today .fc-daygrid-day-number {
-  font-weight: bold;
-  color: #2563eb;
 }
 
 /* Column Headers */

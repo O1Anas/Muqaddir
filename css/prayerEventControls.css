@@ -1,6 +1,6 @@
 .prayer-controls {
     padding: 4px;
-    background-color: #f8f9fa;
+    background-color: #2563eb;
     border-radius: 8px;
     margin: 4px 4px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -16,7 +16,6 @@
 .prayer-controls-header h3 {
     margin: 0;
     font-size: 1.1rem;
-    color: #333;
 }
 
 .prayer-name {
@@ -26,7 +25,7 @@
 }
 
 .prayer-name.disabled {
-    color: #6c757d;
+    color: #ffffffdc;
     text-decoration-line: line-through;
     opacity: 0.7;
     margin: 0 2px;
@@ -36,7 +35,6 @@
     background: none;
     border: none;
     cursor: pointer;
-    color: #6c757d; 
     border-radius: 4px;
     transition: all 0.3s ease;
     font-weight: 500;
@@ -46,18 +44,17 @@
 
 .save-settings-btn:hover {
     background-color: #e9ecef;
-    color: #495057;
+    color: #fff;
 }
 
 .save-settings-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
     background: none;
-    color: #6c757d;
 }
 
 .save-settings-btn.has-unsaved-changes {
-    color: #28a745;
+    color: #16a34a;
     animation: pulse 1s infinite;
     overflow: hidden;
 }
@@ -79,9 +76,9 @@
 } */
 
 @keyframes pulse {
-    0% { opacity: 0.5; }
-    50% { opacity: 1; }
-    100% { opacity: 0.5; }
+    0% { color: #16a34a; }
+    50% { color: #fff; }
+    100% { color: #16a34a; }
 }
 
 /* .prayer-controls-content,
@@ -131,7 +128,6 @@
 
 .prayer-name {
     font-weight: 500;
-    color: #444;
     margin: 0 2px;
     cursor: pointer;
     user-select: none;

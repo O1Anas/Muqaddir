@@ -128,7 +128,7 @@ class PrayerTimesParser {
                     extendedProps: {
                         isPrayerTime: true,
                         prayerName: cleanPrayerName,
-                        group: 'prayers'
+                        group: 'prayer-events'
                     }
                 });
             });

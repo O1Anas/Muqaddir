@@ -873,7 +873,7 @@ calculateBtn.addEventListener('click', async () => {
         const startDateStr = formatDate(startDate);
         const endDateStr = formatDate(endDate);
 
-        apiUrl = `https://api.aladhan.com/v1/calendar/from/${startDateStr}/to/${endDateStr}?latitude=${latitude}&longitude=${longitude}&method=${calculationMethod}`;
+        apiUrl = `https://api.aladhan.com/v1/calendar/from/${startDateStr}/to/${endDateStr}?latitude=${latitude}&longitude=${longitude}&method=${calculationMethod}`; // &tune=0,0,0,0,0,3,0,0,0 for me, need to add a settings interface for this
         // console.log(`API URL: ${apiUrl}`);
 
         // Check if this is a duplicate request

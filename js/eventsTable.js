@@ -221,7 +221,11 @@ const EventsTable = (() => {
       </td>
       ${createTimeColumn('start', startValue, prayers, data)}
       ${createTimeColumn('end', data.end || '', prayers, data)}
-      <td class="event-conditions"></td>
+      <td class="event-conditions">
+      <!-- <span class="event-conditions-content">(soon) example: not if end time > 7am<br>
+      example: not if date is > 2026-04-17<br>
+      example: not if day is monday</span> -->
+      </td>
     `;
     
     eventsTableBody.appendChild(row);
@@ -248,7 +252,7 @@ const EventsTable = (() => {
             <input type="number" name="duration" class="event-input duration-input" 
                    min="0" max="1440" placeholder="minutes" data-column="${prefix}">
             <input type="number" name="fraction" class="event-input fraction-input" 
-                   min="2" max="10" placeholder="fraction" style="display: none;" data-column="${prefix}">
+                   min="1" max="10" placeholder="fraction" style="display: none;" data-column="${prefix}">
           </div>
         </div>
       </td>

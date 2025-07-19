@@ -18,8 +18,7 @@
 .events-container {
   margin: 4px 4px;
   padding: 4px;
-  background-color: #f8f9fa;
-  color: white;
+  background-color: #2563eb;
   border-radius: 8px;
 }
 
@@ -60,7 +59,6 @@
   width: 100%;
   border-collapse: collapse;
   table-layout: fixed;
-  color: white;
   font-size: 0.8em;
 }
 
@@ -92,12 +90,8 @@
   table-layout: fixed;
 }
 
-.events-table tr:nth-child(odd) {
+.events-table tbody tr:nth-child(odd) {
   background-color: rgba(255, 255, 255, 0.2);
-}
-
-.events-table tr:nth-child(even) {
-  background-color: rgba(255, 255, 255, 0.8);
 }
 
 .events-table th,
@@ -209,22 +203,21 @@
 
 /* Pulsing animation for save button when in edit mode */
 @keyframes pulse {
-  0% { opacity: 0.5; }
-  50% { opacity: 1; }
-  100% { opacity: 0.5; }
+    0% { color: #16a34a; }
+    50% { color: #fff; }
+    100% { color: #16a34a; }
 }
 
 .editing .action-btn.save {
-  animation: pulse 1s infinite;
+  animation: pulse 2s infinite;
   color: #4CAF50; /* Green color for save button when editing */
 }
 
 /* Add Event Button */
 .add-event-btn {
   width: 100%;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px dashed rgba(255, 255, 255, 0.3);
-  border-radius: 4px;
+  background-color: #2563eb;
+  border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -233,6 +226,7 @@
   font-size: 0.9em;
   color: white;
   transition: all 0.2s ease;
+  margin: 0 0 1px 0;
 }
 
 /* Save Settings Button */

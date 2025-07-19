@@ -65,13 +65,6 @@ h3 {
   width: 100%;
 }
 
-.sidebar {
-  width: 50vw;
-  background-color: #300000;
-  border-right: 1px solid #fff;
-  color: #fff;
-}
-
 .calendar-container {
   flex: 1;
   width: 100%;

@@ -25,46 +25,56 @@ function createAndDownloadICS(groupName, events) {
 
     // --- Key Fix: Robust Date Handling --- //
 
-    // 1. Helper to reliably convert any input into a UTC Date object.
-    const toUTCDate = (dateInput) => {
-        // If it's a string without a 'Z', add it to ensure UTC parsing.
-        if (typeof dateInput === 'string' && !dateInput.endsWith('Z')) {
-            return new Date(dateInput + 'Z');
+    // Helper to convert any input into a Date object using local time
+    const toLocalDate = (dateInput) => {
+        if (dateInput instanceof Date) {
+            return dateInput;
         }
-        // For existing Date objects or strings already in UTC format.
         return new Date(dateInput);
     };
 
-    // 2. Helper to reliably check if a date is the day before another, using UTC.
-    const isPreviousDay = (current, previous) => {
-        // Normalize dates to midnight UTC to compare them accurately
-        const currentDay = new Date(Date.UTC(current.getUTCFullYear(), current.getUTCMonth(), current.getUTCDate()));
-        const previousDay = new Date(Date.UTC(previous.getUTCFullYear(), previous.getUTCMonth(), previous.getUTCDate()));
+    // Helper to format date as YYYY-MM-DDTHH:mm:ss (ICAL format, local time)
+    const formatLocalDateTime = (date) => {
+        const pad = n => n < 10 ? '0' + n : n;
+        return date.getFullYear() + '-' +
+               pad(date.getMonth() + 1) + '-' +
+               pad(date.getDate()) + 'T' +
+               pad(date.getHours()) + ':' +
+               pad(date.getMinutes()) + ':' +
+               pad(date.getSeconds());
+    };
 
-        // Check if the difference is exactly one day in milliseconds
+    // Helper to check if a date is the day before another (using local time)
+    const isPreviousDay = (current, previous) => {
+        const currentDay = new Date(current);
+        currentDay.setHours(0, 0, 0, 0);
+        
+        const previousDay = new Date(previous);
+        previousDay.setHours(0, 0, 0, 0);
+        
         const oneDayInMs = 24 * 60 * 60 * 1000;
         return currentDay.getTime() - previousDay.getTime() === oneDayInMs;
     };
 
     // --- End of Fix --- //
 
-    // Sort events by start time, ensuring all dates are UTC for comparison.
+    // Sort events by start time
     const sortedEvents = [...events].sort((a, b) => {
-        return toUTCDate(a.start).getTime() - toUTCDate(b.start).getTime();
+        return toLocalDate(a.start).getTime() - toLocalDate(b.start).getTime();
     });
 
     sortedEvents.forEach((event, index) => {
         // console.log(`[Event ${index}] Processing: "${event.title}"`);
         const vevent = new ICAL.Component('vevent');
 
-        const start = toUTCDate(event.start);
-        const end = event.end ? toUTCDate(event.end) : null;
-        // console.log(`  - Current Start (UTC): ${start.toISOString()}`);
+        const start = toLocalDate(event.start);
+        const end = event.end ? toLocalDate(event.end) : null;
 
         vevent.addPropertyWithValue('summary', event.title);
-        vevent.addPropertyWithValue('dtstart', start.toISOString());
+        // Use local time without timezone
+        vevent.addPropertyWithValue('dtstart', formatLocalDateTime(start));
         if (end) {
-            vevent.addPropertyWithValue('dtend', end.toISOString());
+            vevent.addPropertyWithValue('dtend', formatLocalDateTime(end));
         }
 
         if (event.location) {
@@ -96,10 +106,10 @@ function createAndDownloadICS(groupName, events) {
 
             if (index > 0) {
                 const prevEvent = sortedEvents[index - 1];
-                const prevEventStart = toUTCDate(prevEvent.start);
+                const prevEventStart = toLocalDate(prevEvent.start);
 
                 // console.log(`  - Comparing with Prev Event: "${prevEvent.title}"`);
-                // console.log(`  - Prev Start (UTC):    ${prevEventStart.toISOString()}`);
+                // console.log(`  - Prev Start:    ${prevEventStart}`);
 
                 const titleMatch = prevEvent.title === event.title;
                 const isPrevDay = isPreviousDay(start, prevEventStart);
@@ -107,7 +117,7 @@ function createAndDownloadICS(groupName, events) {
 
                 if (titleMatch && isPrevDay) {
                     // console.log('    Match found! Calculating duration change.');
-                    const prevEventEnd = toUTCDate(prevEvent.end);
+                    const prevEventEnd = toLocalDate(prevEvent.end);
                     const prevDurationMs = prevEventEnd.getTime() - prevEventStart.getTime();
                     const durationChangeMs = durationMs - prevDurationMs;
 
@@ -157,8 +167,11 @@ async function exportEventsToICS(calendar) {
         return 0;
     }
     
+    // Ask user if they want to export prayer times in Arabic
+    const useArabic = confirm('Would you like to export prayer times in Arabic?\n\nClick OK for Arabic (e.g., "صَلاة الفَجر"), or Cancel for English (e.g., "Fajr").');
     // console.log('Starting event export process...');
     const events = calendar.getEvents();
+    console.log('events from eventsExporter.js', events);
     console.log(`Found ${events.length} total events to process`);
     
     // Separate prayer events from other events
@@ -166,8 +179,55 @@ async function exportEventsToICS(calendar) {
     const otherEvents = [];
     
     events.forEach(event => {
-        if (event.extendedProps?.group === 'prayer') {
-            prayerEvents.push(event);
+        if (event.extendedProps?.isPrayerTime) {
+            // Create a copy of the event with only the properties we need
+            const prayerEvent = {
+                title: event.title,
+                start: event.start,
+                end: event.end,
+                backgroundColor: event.backgroundColor,
+                borderColor: event.borderColor,
+                textColor: event.textColor,
+                extendedProps: { ...event.extendedProps }
+            };
+            
+            // If user wants Arabic, update the prayer names
+            if (useArabic) {
+                console.log('Prayer event object:', prayerEvent);
+                console.log('Prayer event title:', prayerEvent.title);
+                
+                // Use prayerName from extendedProps if title is not available
+                const prayerName = (prayerEvent.title || prayerEvent.extendedProps?.prayerName || '').toLowerCase();
+                let arabicName = '';
+                
+                // Map English prayer names to Arabic
+                switch(prayerName) { 
+                    case 'fajr':
+                        arabicName = 'Fajr - صَلاة الفَجر';
+                        break;
+                    case 'dhuhr':
+                        arabicName = 'Dhuhr - صَلاة الظُّهر';
+                        break;
+                    case 'asr':
+                        arabicName = 'Asr - صَلاة العَصر';
+                        break;
+                    case 'maghrib':
+                        arabicName = 'Maghrib - صَلاة المَغرِب';
+                        break;
+                    case 'isha':
+                        arabicName = 'Isha - صَلاة العِشاء';
+                        break;
+                    case 'sunrise':
+                        arabicName = 'Sunrise - الشُّروق';
+                        break;
+                    default:
+                        arabicName = prayerEvent.title; // Keep original if not matched
+                }
+                
+                prayerEvent.title = arabicName;
+            }
+            
+            prayerEvents.push(prayerEvent);
         } else {
             otherEvents.push(event);
         }
@@ -201,9 +261,9 @@ async function exportEventsToICS(calendar) {
         // If no group name, use the event title as the group
         if (!groupName) {
             groupName = event.title || 'ungrouped';
-            console.log(`No group found for event '${event.title}', using title as group name`);
+            // console.log(`No group found for event '${event.title}', using title as group name`);
         } else {
-            console.log(`Found group '${groupName}' for event '${event.title}'`);
+            // console.log(`Found group '${groupName}' for event '${event.title}'`);
         }
         
         // Initialize group if it doesn't exist
